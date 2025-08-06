@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Environment variables
+.env
+.env.*
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# IDEs
+.vscode/
+.idea/
+
+# Temporary files
+*.bak
+*.swp
+*.tmp
+*.orig
+
+# Cache
+.cache/
+*.cache
+*.egg-info/
+dist/
+build/
+
+# PDFs, docs, images, and OCR input files (optional)
+uploads/
+documents/
+*.pdf
+*.docx
+*.pptx
+*.jpg
+*.jpeg
+*.png
+
+# LangChain vectorstores (optional)
+chroma/
+index/
+*.faiss
+*.pkl
+*.db
+
+# Mac/Linux hidden files
+*.~*
+
+# Streamlit
+.streamlit/secrets.toml
