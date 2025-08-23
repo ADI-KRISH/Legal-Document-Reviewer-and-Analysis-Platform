@@ -3,8 +3,12 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_google_genai import ChatGoogleGenerativeAI
 from document_parser import vector_store
 from langchain.prompts import PromptTemplate
+llm = ChatGoogleGenerativeAI(
+    model = "gemini-2.0-flash",
+    api_key=GOOGLE_API_KEY
+)
 retriever = vector_store.as_retriever(search_type="mmr",search_kwargs={"k":4})
-chain = retrieval_qa.from_chain_type(
+qa_chain = retrieval_qa.from_chain_type(
     llm=llm,retriever=retriever,
     return_source_documents = True
 )
@@ -34,16 +38,11 @@ USER QUESTION:
 FINAL ANSWER:
 """
 )
-llm = ChatGoogleGenerativeAI(
-    model = "gemini-2.0-flash",
-    api_key=GOOGLE_API_KEY
-)
-
 chain = (
     {"context":retriever,"question":RunnablePassthrough()}
     |qa_chain
     |prompt
 )
-@tool 
+@tool
 def get_legal_response(query:str)->str:
     return chain.invoke(query)
