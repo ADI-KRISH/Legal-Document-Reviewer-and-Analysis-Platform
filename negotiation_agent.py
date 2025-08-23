@@ -3,12 +3,6 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-
-llm = ChatHuggingFace(
-    model="HuggingFaceH4/zephyr-7b-beta",  # Example model, replace with your choice
-    temperature=0.2,
-)
-
 prompt = """
 You are an expert Legal Negotiation and Amendment Drafter.
 You are given a structured JSON object containing:
@@ -85,3 +79,13 @@ You are given a structured JSON object containing:
 - Preserve confidentiality — never store or reuse any input outside this task.
 """
 
+
+class negotiation_agent:
+    def __init__(self) -> None:
+        self.llm=ChatHuggingFace(
+    model="HuggingFaceH4/zephyr-7b-beta",  
+    temperature=0.2)
+        self.prompt = Prompt_template(template=prompt)
+    def get_negotiation_points(self):
+      response = self.llm.invoke(self.prompt)
+      return response.content
