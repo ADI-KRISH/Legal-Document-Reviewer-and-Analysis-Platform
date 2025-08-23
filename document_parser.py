@@ -24,7 +24,14 @@ AZURE_OCR_ENDPOINT = os.getenv("AZURE_OCR_ENDPOINT")
 GOOGLE_API_KEY = os.getenv("DP_API_KEY")
 
 embeddings  = GoogleGenerativeAIEmbeddings(model= "models/embedding-001",api_key = GOOGLE_API_KEY)
-chroma_store = Chroma(persist_directory="chroma_db",embedding_function=embeddings)
+CHROMA_PATH = "chroma_storage"
+
+# Initialize Chroma
+vector_store = Chroma(
+    collection_name="legal_docs",
+    embedding_function=embedding_fn,
+    persist_directory=CHROMA_PATH
+)
 # --- Text Cleaning ---
 def normalise_text(text: str) -> str:
     text = text.lower()
@@ -132,7 +139,10 @@ def add_summary_to_docs(docs: list) -> list:
         summary = generate_summary(summarizer_llm, doc.page_content)
         new_metadata = doc.metadata.copy()
         new_metadata["summary"] = summary
+        new_metadata["enriched"] = True
         summarized_docs.append(Document(page_content=doc.page_content, metadata=new_metadata))
+    vector_store.add_documents(summarized_docs)
+    vector_store.persist()
     return summarized_docs
 
 # --- Wrapper Function (Full Pipeline) ---
@@ -141,6 +151,12 @@ def process_and_summarize(filepath: str) -> list:
     Full pipeline to parse, clean, and summarize a document.
     """
     docs = handle_document(filepath)
+    if not docs :
+        return []
+    chunked_docs = text_splitter.split_documents(docs)
+    vector_store.add_documents(chunked_docs)
+    vector_store.persist()
+    
     return add_summary_to_docs(docs) if docs else []
 
 # --- LangChain Tool Registration ---
