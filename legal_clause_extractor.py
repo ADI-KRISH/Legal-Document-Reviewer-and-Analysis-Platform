@@ -13,6 +13,7 @@ class LegalClauseExtractor:
     model="gemini-1.5-flash",
     api_key=GOOGLE_API_KEY
     )
+    
     self.prompt = PromptTemplate(
       input_variables=["text"],
     template="""
@@ -74,3 +75,7 @@ GUIDELINES:
 - Do not hallucinate or infer information that is not explicitly in the text.
 """
 )
+    self.chain = self.prompt | self.llm
+  def extract(self, text: str):
+        return self.chain.invoke({"text": text}).content
+

@@ -1,43 +1,16 @@
 from langchain_huggingface import ChatHuggingFace
+from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
-prompt = """
+
+prompt_template = """
 You are an expert Legal Negotiation and Amendment Drafter.
 You are given a structured JSON object containing:
 
 ---
-{{
-  "risk_analysis": [
-    {{
-      "clause": "Clause text...",
-      "risk_level": "High",
-      "reason": "Explanation of why it's high risk."
-    }}
-  ],
-  "compliance_issues": [
-    {{
-      "clause": "Clause text...",
-      "issue": "Description of compliance gap.",
-      "regulation": "Relevant law or standard"
-    }}
-  ],
-  "missing_clauses": [],
-  "conflicts": [
-    {{
-      "clause_1": "First clause text...",
-      "clause_2": "Second clause text...",
-      "conflict": "Explanation of conflict."
-    }}
-  ],
-  "recommendations": [
-    {{
-      "clause": "Clause text...",
-      "suggestion": "Suggested improvement."
-    }}
-  ]
-}}
+{json_input}
 ---
 
 **Your Tasks:**
@@ -50,26 +23,26 @@ You are given a structured JSON object containing:
 
 ---
 **Output JSON Schema:**
-{{
+{
     "amendments": [
-        {{
+        {
             "original_clause": "Original clause text",
             "recommended_rewrite": "Rewritten clause text",
             "rewrite_reason": "Reason for the rewrite"
-        }}
+        }
     ],
     "negotiation_points": [
         "Point 1",
         "Point 2"
     ],
     "priority_ranking": [
-        {{
+        {
             "clause": "Clause text",
             "priority": "High/Medium/Low",
             "priority_reason": "Reason for priority ranking"
-        }}
+        }
     ]
-}}
+}
 ---
 
 **Guidelines:**
@@ -79,13 +52,18 @@ You are given a structured JSON object containing:
 - Preserve confidentiality — never store or reuse any input outside this task.
 """
 
-
-class negotiation_agent:
+class NegotiationAgent:
     def __init__(self) -> None:
-        self.llm=ChatHuggingFace(
-    model="HuggingFaceH4/zephyr-7b-beta",  
-    temperature=0.2)
-        self.prompt = Prompt_template(template=prompt)
-    def get_negotiation_points(self):
-      response = self.llm.invoke(self.prompt)
-      return response.content
+        self.llm = ChatHuggingFace(
+            model="HuggingFaceH4/zephyr-7b-beta",  
+            temperature=0.2
+        )
+        self.prompt = PromptTemplate(
+            input_variables=["json_input"],
+            template=prompt_template
+        )
+        self.chain = self.prompt | self.llm
+
+    def get_negotiation_points(self, json_input: str):
+        response = self.chain.invoke({"json_input": json_input})
+        return response.content
