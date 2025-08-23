@@ -4,7 +4,8 @@ import time
 import logging
 from datetime import datetime
 from dotenv import load_dotenv
-
+from langchain_chroma import Chroma 
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.document_loaders import PyMuPDFLoader, Docx2txtLoader, Pptx2txtLoader
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.documents import Document
@@ -22,6 +23,8 @@ AZURE_OCR_KEY = os.getenv("AZURE_OCR_KEY")
 AZURE_OCR_ENDPOINT = os.getenv("AZURE_OCR_ENDPOINT")
 GOOGLE_API_KEY = os.getenv("DP_API_KEY")
 
+embeddings  = GoogleGenerativeAIEmbeddings(model= "models/embedding-001",api_key = GOOGLE_API_KEY)
+chroma_store = Chroma(persist_directory="chroma_db",embedding_function=embeddings)
 # --- Text Cleaning ---
 def normalise_text(text: str) -> str:
     text = text.lower()
