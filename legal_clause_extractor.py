@@ -7,15 +7,14 @@ from dotenv import load_dotenv
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("DP_API_KEY")
 
-# Initialize LLM
-legal_clause_extractor_llm = ChatGoogleGenerativeAI(
+class LegalClauseExtractor:
+  def __init__(self) -> None:
+    self.llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash",
     api_key=GOOGLE_API_KEY
-)
-
-# Prompt Template
-prompt = PromptTemplate(
-    input_variables=["text"],
+    )
+    self.prompt = PromptTemplate(
+      input_variables=["text"],
     template="""
 You are an expert legal contract analyst specialised in extracting structured knowledge from lengthy documents. 
 You receive raw, unstructured, and possibly fragmented text from the Document Parser Agent. 

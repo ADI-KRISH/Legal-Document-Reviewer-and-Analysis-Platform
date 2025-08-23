@@ -29,7 +29,7 @@ CHROMA_PATH = "chroma_storage"
 # Initialize Chroma
 vector_store = Chroma(
     collection_name="legal_docs",
-    embedding_function=embedding_fn,
+    embedding_function=embeddings,
     persist_directory=CHROMA_PATH
 )
 # --- Text Cleaning ---
@@ -157,7 +157,7 @@ def process_and_summarize(filepath: str) -> list:
     vector_store.add_documents(chunked_docs)
     vector_store.persist()
     
-    return add_summary_to_docs(docs) if docs else []
+    return add_summary_to_docs(chunked_docs) if chunked_docs else []
 
 # --- LangChain Tool Registration ---
 @tool
