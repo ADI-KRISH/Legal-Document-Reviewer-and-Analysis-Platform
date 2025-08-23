@@ -11,14 +11,6 @@ llm = ChatOpenAI(
     temperature=0.2,
     api_key=OPENAI_API_KEY
 )
-class report_generator_agent:
-   def __init__(self) -> None:
-       self.llm = llm
-       self.prompt = final_report_prompt
-   def generate_final_report(all_data: dict):
-      prompt_filled = self.prompt.format(**all_data)
-      response = self.llm.invoke(prompt_filled)
-      return response.content
 
 # Prompt template
 final_report_prompt = PromptTemplate(
@@ -97,4 +89,12 @@ DO NOT invent information that was not provided.
 """
 )
 
+class ReportGeneratorAgent:
+    def __init__(self) -> None:
+        self.llm = llm
+        self.prompt = final_report_prompt
 
+    def generate_final_report(self, all_data: dict):
+        prompt_filled = self.prompt.format(**all_data)
+        response = self.llm.invoke(prompt_filled)
+        return response.content

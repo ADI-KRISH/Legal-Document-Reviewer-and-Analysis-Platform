@@ -1,40 +1,17 @@
 from langchain.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
+from langchain_mistralai import ChatMistralAI
 from dotenv import load_dotenv
 import os
 
 # Load API Key
 load_dotenv()
-MISTRAL_API_KEY = os.getenv("mistral")
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 
-# LLM Setup
-llm = ChatOpenAI(
-    api_key=MISTRAL_API_KEY,
-    model="mistral-large-latest",  # reasoning-optimized
-)
-
-# Prompt Template (do not pre-format here)
 prompt = """
 You are given a JSON object containing:
-{{
-  "clean_text": "Full cleaned and reconstructed document text",
-  "sections": [
-    {{
-      "heading": "Section Title",
-      "full_text": "Complete section text",
-      "summary": "Brief summary of the section"
-    }}
-  ],
-  "global_summary": "Concise overall summary of the document",
-  "key_entities": {{
-    "parties": [],
-    "dates": [],
-    "obligations": [],
-    "penalties": [],
-    "financial_terms": [],
-    "special_clauses": []
-  }}
-}}
+
+**Input Structured JSON:**
+{structured_input}
 
 You are an expert legal risk and compliance analyst.
 You are tasked with analyzing the provided JSON object (from the Legal Clause Extraction Agent) to extract the following:
@@ -58,11 +35,6 @@ You are tasked with analyzing the provided JSON object (from the Legal Clause Ex
    - Suggest improvements for risky clauses.
    - Recommend additions for missing clauses.
    - Provide negotiation strategies to protect the client's interest.
-
----
-
-**Input Structured JSON:**
-{structured_input}
 
 ---
 
@@ -106,8 +78,19 @@ You are tasked with analyzing the provided JSON object (from the Legal Clause Ex
 - Be **precise and concise** in explanations.
 """
 
-# Define Prompt Template
-risk_compliance_template = PromptTemplate(
-    input_variables=["structured_input"],
-    template=prompt
-)
+class RiskAssessmentAgent:
+    def __init__(self) -> None:
+        self.llm = ChatMistralAI(
+            api_key=MISTRAL_API_KEY,
+            model="mistral-large-latest",
+            temperature=0.2
+        )
+        self.prompt = PromptTemplate(
+            input_variables=["structured_input"],
+            template=prompt
+        )
+        self.chain = self.prompt | self.llm
+
+    def assess_risk(self, structured_input: str):
+        response = self.chain.invoke({"structured_input": structured_input})
+        return response.content if hasattr(response, "content") else response
