@@ -1,15 +1,15 @@
 from langchain.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
+from langchain_xai import ChatXAI
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+API_KEY = os.getenv("grok")
 
-llm = ChatOpenAI(
-    model="gpt-4o", 
+llm = ChatXAI(
+    model="grok-4", 
     temperature=0.2,
-    api_key=OPENAI_API_KEY
+    api_key=API_KEY
 )
 
 # Prompt template

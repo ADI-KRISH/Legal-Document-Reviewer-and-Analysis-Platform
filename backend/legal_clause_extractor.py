@@ -11,7 +11,7 @@ class LegalClauseExtractor:
   def __init__(self) -> None:
     self.llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash",
-    api_key=GOOGLE_API_KEY
+    google_api_key=GOOGLE_API_KEY
     )
     
     self.prompt = PromptTemplate(

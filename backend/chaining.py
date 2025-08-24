@@ -1,17 +1,21 @@
-from langchain.chains import retrieval_qa
+from langchain.chains import create_retrieval_chain
 from langchain_core.runnables import RunnablePassthrough
 from langchain_google_genai import ChatGoogleGenerativeAI
 from document_parser import vector_store
 from langchain.prompts import PromptTemplate
+import os
+from langchain.chains.combine_documents import create_stuff_documents_chain
+
+from dotenv import load_dotenv
+load_dotenv()
+GOOGLE_API_KEY=os.getenv("google")
 llm = ChatGoogleGenerativeAI(
     model = "gemini-2.0-flash",
-    api_key=GOOGLE_API_KEY
+    google_api_key=GOOGLE_API_KEY
 )
+
 retriever = vector_store.as_retriever(search_type="mmr",search_kwargs={"k":4})
-qa_chain = retrieval_qa.from_chain_type(
-    llm=llm,retriever=retriever,
-    return_source_documents = True
-)
+
 GOOGLE_API_KEY=os.getenv("DP_API_KEY") 
 
 prompt = PromptTemplate(
@@ -37,7 +41,14 @@ USER QUESTION:
 
 FINAL ANSWER:
 """
+
 )
+question_answer_chain = create_stuff_documents_chain(llm, prompt)
+qa_chain = create_retrieval_chain(
+    retriever,
+    question_answer_chain
+)
+
 chain = (
     {"context":retriever,"question":RunnablePassthrough()}
     |qa_chain

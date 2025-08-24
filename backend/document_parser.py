@@ -22,8 +22,8 @@ load_dotenv()
 AZURE_OCR_KEY = os.getenv("AZURE_OCR_KEY")
 AZURE_OCR_ENDPOINT = os.getenv("AZURE_OCR_ENDPOINT")
 GOOGLE_API_KEY = os.getenv("DP_API_KEY")
-
-embeddings  = GoogleGenerativeAIEmbeddings(model= "models/embedding-001",api_key = GOOGLE_API_KEY)
+API_KEY  = os.getenv("google")
+embeddings  = GoogleGenerativeAIEmbeddings(model= "models/embedding-001",google_api_key = API_KEY)
 CHROMA_PATH = "chroma_storage"
 
 # Initialize Chroma
@@ -120,7 +120,7 @@ text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=20
 # --- LLM for Summarization ---
 summarizer_llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash",
-    api_key=GOOGLE_API_KEY
+    google_api_key=GOOGLE_API_KEY
 )
 
 def generate_summary(llm, text: str) -> str:
