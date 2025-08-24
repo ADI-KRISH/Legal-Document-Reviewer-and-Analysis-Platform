@@ -1,11 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from tools import (get_legal_response,
-    extract_legal_clause,
-    assess_risk,
-    generate_report,
-    negotiate,
-)
+
 from main_agent import main_agent
 from document_parser import process_and_summarize
 

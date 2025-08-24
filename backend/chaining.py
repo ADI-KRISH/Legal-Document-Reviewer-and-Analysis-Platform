@@ -43,6 +43,3 @@ chain = (
     |qa_chain
     |prompt
 )
-@tool
-def get_legal_response(query:str)->str:
-    return chain.invoke(query)

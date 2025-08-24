@@ -6,7 +6,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from langchain_chroma import Chroma 
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_community.document_loaders import PyMuPDFLoader, Docx2txtLoader, Pptx2txtLoader
+from langchain_community.document_loaders import PyMuPDFLoader, Docx2txtLoader, UnstructuredPowerPointLoader
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.documents import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -60,7 +60,7 @@ def handle_document(filepath: str) -> list:
             docs = loader.load()
 
         elif ext == 'pptx':
-            loader = Pptx2txtLoader(filepath)
+            loader = UnstructuredPowerPointLoader(filepath)
             docs = loader.load()
 
         elif ext in ('jpg', 'jpeg', 'png'):

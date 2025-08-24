@@ -10,19 +10,19 @@ GOOGLE_API_KEY = os.getenv("DP_API_KEY")
 # Import your specialized tool functions
 from tools import (
     get_legal_response,
-    extract_clauses,
+    extract_legal_clause,
     assess_risk,
-    generate_negotiation_strategy,
-    generate_final_report
+    negotiate,
+    generate_report
 )
 
 # Wrap tools into a list
 tools = [
     get_legal_response,
-    extract_clauses,
+    extract_legal_clause,
+    negotiate,
     assess_risk,
-    generate_negotiation_strategy,
-    generate_final_report
+    generate_report
 ]
 
 # Main system prompt for the central agent
