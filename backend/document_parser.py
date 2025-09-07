@@ -114,12 +114,11 @@ def handle_document(filepath: str) -> list:
         logging.error(f"Error processing file '{filepath}': {e}")
         return []
 
-# --- Text Splitter (defined for future use if needed) ---
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 
 # --- LLM for Summarization ---
 summarizer_llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-flash",
+    model="gemini-2.5-flash",
     google_api_key=GOOGLE_API_KEY
 )
 
@@ -142,7 +141,6 @@ def add_summary_to_docs(docs: list) -> list:
         new_metadata["enriched"] = True
         summarized_docs.append(Document(page_content=doc.page_content, metadata=new_metadata))
     vector_store.add_documents(summarized_docs)
-    vector_store.persist()
     return summarized_docs
 
 # --- Wrapper Function (Full Pipeline) ---
@@ -155,7 +153,6 @@ def process_and_summarize(filepath: str) -> list:
         return []
     chunked_docs = text_splitter.split_documents(docs)
     vector_store.add_documents(chunked_docs)
-    vector_store.persist()
     
     return add_summary_to_docs(chunked_docs) if chunked_docs else []
 

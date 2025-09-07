@@ -76,6 +76,8 @@ GUIDELINES:
 """
 )
     self.chain = self.prompt | self.llm
-  def extract(self, text: str):
-        return self.chain.invoke({"text": text}).content
+  def extract(self, text: str,context:str):
+        return self.chain.invoke({"text": text,'context':context}).content
+
+  
 

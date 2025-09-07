@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 
-BACKEND_URL = "http://localhost:8000"  # your FastAPI backend
+BACKEND_URL = "http://localhost:8000" 
 
 st.set_page_config(page_title="Legal Document Reviewer", layout="wide")
 
@@ -29,11 +29,14 @@ user_input = st.text_input("Ask a question about the uploaded documents:")
 if st.button("Ask"):
     if user_input:
         with st.spinner("Analyzing..."):
-            response = requests.post(f"{BACKEND_URL}/ask", json={"query": user_input})
+            response = requests.post(f"{BACKEND_URL}/ask", json={"question": user_input})
             if response.status_code == 200:
                 data = response.json()
-                st.subheader("📌 Answer:")
-                st.write(data["answer"])
+                if data.get("status") == "success":
+                    st.subheader("📌 Answer:")
+                    st.write(data["answer"])
+                else:
+                    st.error("❌ Backend error: " + data.get("message", "Unknown issue"))
 
                 if "sources" in data:
                     st.subheader("📎 Sources:")

@@ -94,7 +94,7 @@ class ReportGeneratorAgent:
         self.llm = llm
         self.prompt = final_report_prompt
 
-    def generate_final_report(self, all_data: dict):
+    def generate_final_report(self, all_data: dict,context:str):
         prompt_filled = self.prompt.format(**all_data)
-        response = self.llm.invoke(prompt_filled)
+        response = self.llm.invoke(prompt_filled,context)
         return response.content

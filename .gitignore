@@ -50,9 +50,9 @@ documents/
 *.jpg
 *.jpeg
 *.png
-
+chroma
 # LangChain vectorstores (optional)
-chroma/
+chroma_storage/
 index/
 *.faiss
 *.pkl

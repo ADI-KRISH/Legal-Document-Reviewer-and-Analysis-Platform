@@ -7,10 +7,13 @@ load_dotenv()
 
 prompt_template = """
 You are an expert Legal Negotiation and Amendment Drafter.
-You are given a structured JSON object containing:
 
 ---
-{json_input}
+Context (from the legal document):
+{context}
+
+User Request / Clause Focus (optional):
+{query}
 ---
 
 **Your Tasks:**
@@ -46,7 +49,9 @@ You are given a structured JSON object containing:
 ---
 
 **Guidelines:**
-- Do NOT hallucinate or create clauses that are not based on the input JSON.
+- Do NOT hallucinate or create clauses that are not based on the input.
+- If no {query} is provided, analyze the entire {context}.
+- If {query} is provided, focus only on the clause(s) related to it.
 - Be concise but precise — every rewrite must be legally enforceable.
 - Ensure rewrites align with common legal standards and good faith practices.
 - Preserve confidentiality — never store or reuse any input outside this task.
@@ -59,11 +64,15 @@ class NegotiationAgent:
             temperature=0.2
         )
         self.prompt = PromptTemplate(
-            input_variables=["json_input"],
+            input_variables=["context", "query"],
             template=prompt_template
         )
         self.chain = self.prompt | self.llm
 
-    def get_negotiation_points(self, json_input: str):
-        response = self.chain.invoke({"json_input": json_input})
+    def get_negotiation_points(self, context: str, query: str = "") -> str:
+        """
+        - If query is empty: run negotiation on the entire context.
+        - If query is provided: run negotiation only for that clause/topic.
+        """
+        response = self.chain.invoke({"context": context, "query": query})
         return response.content

@@ -12,7 +12,6 @@ You are given a JSON object containing:
 
 **Input Structured JSON:**
 {structured_input}
-
 You are an expert legal risk and compliance analyst.
 You are tasked with analyzing the provided JSON object (from the Legal Clause Extraction Agent) to extract the following:
 
