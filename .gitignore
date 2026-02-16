@@ -57,9 +57,11 @@ index/
 *.faiss
 *.pkl
 *.db
+.md
 
 # Mac/Linux hidden files
 *.~*
 
 # Streamlit
 .streamlit/secrets.toml
+test/
