@@ -41,7 +41,7 @@ To support **bulk users** and ensure **low latency**, we need a distributed even
 graph TD
     Client[Frontend (React/Next.js)] -->|WebSocket/HTTP| Gateway[API Gateway (Nginx/Traefik)]
     Gateway --> API[FastAPI Backend Service]
-    API -->|Push Task| Redis[Redis Task Queue]
+    API -->|Push Task| Redis[Redis Task Queue (Docker)]
     
     subgraph Agent Cluster
         Worker1[Celery Worker - Orchestrator]
@@ -54,7 +54,8 @@ graph TD
     Redis --> Worker3
     
     Worker1 -->|Read/Write| DB[(PostgreSQL - App State)]
-    Worker1 -->|Vector Search| VectorDB[(Chroma/Pinecone - RAG)]
+    Worker1 -->|Vector Search| VectorDB[(Chroma (Local) - RAG)]
+    Worker1 -->|LLM Inference| Ollama[Ollama / Gemini Flash (Free)]
     
     Worker1 -->|Pub/Sub Updates| Redis
     Redis -->|Stream Updates| API
@@ -89,7 +90,7 @@ graph TD
 
 3.  **Accuracy (Hallucination Control)**:
     - **RAG + Citations**: Never let the model answer from memory. Force it to cite the specific paragraph in the uploaded PDF.
-    - **Validator Agent**: A small, fast model (GPT-3.5-turbo) that checks the output of the big model (GPT-4) for JSON validity and basic logic before showing it to the user.
+    - **Validator Agent**: A small, fast model (e.g., **Ollama Llama3:8b**) that checks the output of the big model for JSON validity and basic logic.
 
 ## 6. The "Best" Agentic Architecture
 Move from a "Call and Wait" model to an **Actor Model**:

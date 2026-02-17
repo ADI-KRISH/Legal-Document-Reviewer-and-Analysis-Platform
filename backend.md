@@ -17,6 +17,7 @@ To build the "Industry Grade" version of this project, you need to master these 
 
 1.  **Relational Databases (PostgreSQL)**:
     - You need to store `Users`, `Documents`, `ChatHistory`, and `NegotiationReports`.
+    - **Host It**: Run `postgres:15` in Docker. Don't pay for AWS RDS.
     - **ORM**: Learn **SQLAlchemy (Async)** or **Tortoise ORM**.
     - **Migrations**: Learn **Alembic**. You can't just delete the DB file in production.
 2.  **Vector Databases (RAG)**:
@@ -31,7 +32,7 @@ To build the "Industry Grade" version of this project, you need to master these 
     - Never call blocking code (like standard `requests` library or heavy file I/O) inside an `async def` function.
 2.  **Task Queues (Celery + Redis)**:
     - **Concept**: User uploads file -> API returns "202 Accepted" -> Celery Worker processes it for 5 minutes -> API checks status.
-    - **Implementation**: Setup a Redis container. Write a strict separation between "Web Tier" (FastAPI) and "Worker Tier" (Agent logic).
+    - **Implementation**: Run `redis:alpine` in Docker. Write a strict separation between "Web Tier" (FastAPI) and "Worker Tier" (Agent logic).
 
 ## Level 4: Real-Time Communication
 *Goal: The user watches the AI "think" live.*

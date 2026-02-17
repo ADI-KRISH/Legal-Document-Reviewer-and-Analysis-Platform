@@ -1,3 +1,12 @@
+import sys
+import os
+from dotenv import load_dotenv
+import json
+
+# Add current directory (system) to sys.path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)).replace(os.sep + 'test', ''))
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+
 from negotiation_agent import Negotiation_Agent
 
 def main():
@@ -65,8 +74,12 @@ def main():
         ]
     }
 
+    # Convert to JSON string as expected by the agent
+    clauses_str = json.dumps(clauses_json)
+    risk_str = json.dumps(risk_json)
+
     agent = Negotiation_Agent()
-    output = agent.negotiate(clauses_json=clauses_json, risk_json=risk_json)
+    output = agent.negotiate(clauses_json=clauses_str, risk_json=risk_str)
 
     print("\n✅ Negotiation Agent Output (Pydantic Object):\n")
     print(output)

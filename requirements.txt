@@ -6,6 +6,7 @@ autogenstudio>=0.4.0                 # Major update: New event-driven architectu
 openai>=2.15.0                       # Latest Python SDK v2
 langchain-openai>=1.1.7
 langchainhub>=0.1.20
+langchain-google-genai # Added for document_parser.py
 
 # PDF / DOCX Parsing & OCR
 pdfplumber>=0.11.0
@@ -19,9 +20,11 @@ Pillow>=10.3.0
 spacy>=3.8.0
 nltk>=3.9.1
 regex>=2024.0.0
+numpy<2.0 # Constraint to avoid compatibility issues
 
 # Vector DB & Embeddings
 chromadb>=1.4.1                      # Major update: Performance fixes
+langchain-chroma>=0.1.0              # Required for Chroma integration
 faiss-cpu>=1.8.0
 sentence-transformers>=3.0.0         # Updated for newer HuggingFace models
 
@@ -29,9 +32,12 @@ sentence-transformers>=3.0.0         # Updated for newer HuggingFace models
 fastapi>=0.112.0
 uvicorn>=0.30.0
 python-dotenv>=1.0.1
+boto3>=1.34.0
+psycopg2-binary # Required for PostgreSQL
 pydantic>=2.12.0                     # Standardized on Pydantic V2
 httpx>=0.27.2
 tqdm>=4.67.0
+
 
 # Frontend
 streamlit>=1.53.0                    # Jan 2026 Release
