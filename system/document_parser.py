@@ -7,9 +7,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 print("Loading langchain...")
 from langchain_chroma import Chroma 
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.document_loaders import PyMuPDFLoader, Docx2txtLoader, UnstructuredPowerPointLoader
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.tools import tool
@@ -40,96 +39,72 @@ except Exception as e:
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 load_dotenv()
 
-# We only need Google API Key (Free Tier via Gemini)
-DP_API_KEY = os.getenv("DP_API_KEY") # Ensure this is in your .env
-API_KEY = os.getenv("google")
+# We only need OpenAI API Key
+API_KEY = os.getenv("OPENAI_API_KEY")
 
 if not API_KEY:
-    logging.warning("Google API Key not found. Please set 'google' in .env")
+    logging.warning("OpenAI API Key not found. Please set 'OPENAI_API_KEY' in .env")
 
-embeddings  = GoogleGenerativeAIEmbeddings(
-    model="models/embedding-001",
-    google_api_key=API_KEY
+embeddings = OpenAIEmbeddings(
+    model="text-embedding-3-small"
 )
+BUCKET = "legal_uploads"
 
 CHROMA_PATH = "chroma_storage"
-
-# Initialize Chroma
 vector_store = Chroma(
     collection_name="legal_docs",
     embedding_function=embeddings,
     persist_directory=CHROMA_PATH
 )
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=1000,
+    chunk_overlap=200
+)
 
-# --- Text Cleaning ---
-def normalise_text(text: str) -> str:
-    text = text.lower()
-    text = re.sub(r'\s+', ' ', text)
-    text = re.sub(r'page \d+ of \d+', '', text)
-    text = re.sub(r'\*\*\*.*?\*\*\*', '', text)
-    text = re.sub(r'[^\x00-\x7F]+', '', text)
-    text = re.sub(r'https?://\S+|www\.\S+', '', text)
-    text = re.sub(r'[^a-z0-9\s]', '', text)
-    return text.strip()
+# --- LLM for Summarization (Using OpenAI) ---
+summarizer_llm = ChatOpenAI(
+    model="gpt-4o-mini",
+    temperature=0
+)
+class DocumentProcessor:
+    def __init__(self):
+        self.embeddings = embeddings 
+        self.vector_storage = vector_store
+        self.text_splitter = text_splitter
+        self.summarizer_llm = summarizer_llm
+        self.bucket = BUCKET
+    def handle_document(self,filepath: str) -> list:
+        extracted_at = datetime.now().isoformat()
+        docs = []
 
-# --- Surya OCR Helper ---
-def perform_ocr(filepath: str) -> str:
-    if not SURYA_AVAILABLE:
-        return "OCR Unavailable. Please install surya-ocr."
-    
-    try:
-        image = Image.open(filepath)
-        langs = ["en"] 
-        
-        # Load models (this happens once per call, for better performance load globally if server has RAM)
-        det_processor, det_model = segformer.load_processor(), segformer.load_model()
-        rec_model, rec_processor = load_model(), load_processor()
+        try:
+            ext = filepath.lower().split('.')[-1]
 
-        predictions = run_ocr([image], [langs], det_model, det_processor, rec_model, rec_processor)
-        
-        text = ""
-        # Accessing Surya result structure
-        if predictions and len(predictions) > 0:
-            for line in predictions[0].text_lines:
-                text += line.text + "\n"
-        return text
-    except Exception as e:
-        logging.error(f"Surya OCR Failed: {e}")
-        return ""
+            if ext == 'pdf':
+                loader = PyMuPDFLoader(filepath)
+                docs = loader.load()
 
-# --- Document Handler ---
-def handle_document(filepath: str) -> list:
-    extracted_at = datetime.now().isoformat()
-    docs = []
+            elif ext == 'docx':
+                loader = Docx2txtLoader(filepath)
+                docs = loader.load()
 
-    try:
-        ext = filepath.lower().split('.')[-1]
+            elif ext == 'pptx':
+                loader = UnstructuredPowerPointLoader(filepath)
+                docs = loader.load()
 
-        if ext == 'pdf':
-            loader = PyMuPDFLoader(filepath)
-            docs = loader.load()
+            elif ext in ('jpg', 'jpeg', 'png'):
+                logging.info(f"Processing Image {filepath} with Surya OCR...")
+                text = perform_ocr(filepath)
+                if not text.strip():
+                    raise ValueError("OCR produced no text.")
+                docs = [Document(page_content=text)]
 
-        elif ext == 'docx':
-            loader = Docx2txtLoader(filepath)
-            docs = loader.load()
+            else:
+                raise ValueError(f"Unsupported file type: {ext}")
 
-        elif ext == 'pptx':
-            loader = UnstructuredPowerPointLoader(filepath)
-            docs = loader.load()
-
-        elif ext in ('jpg', 'jpeg', 'png'):
-            logging.info(f"Processing Image {filepath} with Surya OCR...")
-            text = perform_ocr(filepath)
-            if not text.strip():
-                raise ValueError("OCR produced no text.")
-            docs = [Document(page_content=text)]
-
-        else:
-            raise ValueError(f"Unsupported file type: {ext}")
-
-        processed_docs = []
-        for doc in docs:
-            cleaned = normalise_text(doc.page_content)
+            processed_docs = []
+            for doc in docs:
+                cleaned = normalise_text(doc.page_content)
             metadata = {
                 "file_type": ext,
                 "extracted_at": extracted_at,
@@ -141,41 +116,58 @@ def handle_document(filepath: str) -> list:
                     Document(page_content=cleaned, metadata=metadata)
                 )
 
-        return processed_docs
+            return processed_docs
 
-    except Exception as e:
-        logging.error(f"Error processing file '{filepath}': {e}")
-        return []
+        except Exception as e:
+            logging.error(f"Error processing file '{filepath}': {e}")
+            return []
+    def normalise_text(self,text: str) -> str:
+        text = text.lower()
+        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r'page \d+ of \d+', '', text)
+        text = re.sub(r'\*\*\*.*?\*\*\*', '', text)
+        text = re.sub(r'[^\x00-\x7F]+', '', text)
+        text = re.sub(r'https?://\S+|www\.\S+', '', text)
+        text = re.sub(r'[^a-z0-9\s]', '', text)
+        return text.strip()
+    def perform_ocr(self,filepath: str) -> str:
+        if not SURYA_AVAILABLE:
+            return "OCR Unavailable. Please install surya-ocr."
+    
+        try:
+            image = Image.open(filepath)
+            langs = ["en"] 
+        
+        # Load models (this happens once per call, for better performance load globally if server has RAM)
+            det_processor, det_model = segformer.load_processor(), segformer.load_model()
+            rec_model, rec_processor = load_model(), load_processor()
 
-# --- Chunking ---
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000,
-    chunk_overlap=200
-)
-
-# --- LLM for Summarization (Using Gemini Flash - Free Tier) ---
-summarizer_llm = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash", # Use the latest flash model for speed
-    google_api_key=DP_API_KEY if DP_API_KEY else API_KEY
-)
-
-def generate_summary(llm, text: str) -> str:
-    prompt = f"Summarize the following legal text in 2 sentences:\n{text}"
-    try:
-        response = llm.invoke(prompt)
-        return response.content if hasattr(response, 'content') else str(response)
-    except Exception as e:
-        logging.warning(f"Failed to summarize chunk: {e}")
+            predictions = run_ocr([image], [langs], det_model, det_processor, rec_model, rec_processor)
+        
+            text = ""
+        # Accessing Surya result structure
+            if predictions and len(predictions) > 0:
+                for line in predictions[0].text_lines:
+                    text += line.text + "\n"
+            return text
+        except Exception as e:
+            logging.error(f"Surya OCR Failed: {e}")
         return ""
-
-# --- Add Summaries to Documents ---
-def add_summary_to_docs(docs: list) -> list:
-    summarized_docs = []
-    for idx, doc in enumerate(docs):
+    def generate_summary(self,llm, text: str) -> str:
+        prompt = f"Summarize the following legal text in 2 sentences:\n{text}"
+        try:
+            response = llm.invoke(prompt)
+            return response.content if hasattr(response, 'content') else str(response)
+        except Exception as e:
+            logging.warning(f"Failed to summarize chunk: {e}")
+        return ""
+    def add_summary_to_docs(self,docs: list) -> list:
+        summarized_docs = []
+        for idx, doc in enumerate(docs):
         # We can skip summarizing very short chunks if needed
-        summary = generate_summary(summarizer_llm, doc.page_content)
+            summary = generate_summary(summarizer_llm, doc.page_content)
 
-        new_metadata = doc.metadata.copy()
+            new_metadata = doc.metadata.copy()
         new_metadata["summary"] = summary
         new_metadata["enriched"] = True
         new_metadata["chunk_id"] = idx
@@ -184,57 +176,76 @@ def add_summary_to_docs(docs: list) -> list:
             Document(page_content=doc.page_content, metadata=new_metadata)
         )
 
-    return summarized_docs
+        return summarized_docs
+    def process_and_summarize(self,filepath: str) -> list:
+        db = SessionLocal()
+        contract_entry = Contract(
+            filename=os.path.basename(filepath),
+            upload_path=filepath,
+            status=ProcessingStatus.PROCESSING
+        )
+        db.add(contract_entry)
+        db.commit()
+        db.refresh(contract_entry)
 
-# --- Full Pipeline ---
-def process_and_summarize(filepath: str) -> list:
-    db = SessionLocal()
-    contract_entry = Contract(
-        filename=os.path.basename(filepath),
-        upload_path=filepath,
-        status=ProcessingStatus.PROCESSING
-    )
-    db.add(contract_entry)
-    db.commit()
-    db.refresh(contract_entry)
+        try:    
+            docs = handle_document(filepath)
+            if not docs:
+                contract_entry.status = ProcessingStatus.FAILED
+                db.commit()
+                return []
 
-    try:
-        docs = handle_document(filepath)
-        if not docs:
+            # Update page count (or chunk count really)
+            contract_entry.page_count = len(docs)
+        
+            chunked_docs = text_splitter.split_documents(docs)
+        
+            # Optional: For speed/cost, maybe skip summary for huge docs unless required
+            summarized_docs = add_summary_to_docs(chunked_docs)
+
+            # Update Summary in DB to first chunk's summary as a placeholder
+            if summarized_docs:
+                contract_entry.summary = summarized_docs[0].metadata.get("summary", "")[:500]
+
+            # embed only once (no duplicates)
+            # Add contract_id to metadata
+            for doc in summarized_docs:
+                doc.metadata["contract_id"] = contract_entry.id
+
+            vector_store.add_documents(summarized_docs)
+
+            contract_entry.status = ProcessingStatus.COMPLETED
+            db.commit()
+            return summarized_docs
+
+        except Exception as e:
+            logging.error(f"Pipeline Error: {e}")
             contract_entry.status = ProcessingStatus.FAILED
             db.commit()
             return []
+        finally:
+            db.close()
+# Initialize Chroma
 
-        # Update page count (or chunk count really)
-        contract_entry.page_count = len(docs)
-        
-        chunked_docs = text_splitter.split_documents(docs)
-        
-        # Optional: For speed/cost, maybe skip summary for huge docs unless required
-        summarized_docs = add_summary_to_docs(chunked_docs)
 
-        # Update Summary in DB to first chunk's summary as a placeholder
-        if summarized_docs:
-            contract_entry.summary = summarized_docs[0].metadata.get("summary", "")[:500]
+# --- Text Cleaning ---
 
-        # embed only once (no duplicates)
-        # Add contract_id to metadata
-        for doc in summarized_docs:
-            doc.metadata["contract_id"] = contract_entry.id
 
-        vector_store.add_documents(summarized_docs)
+# --- Surya OCR Helper ---
 
-        contract_entry.status = ProcessingStatus.COMPLETED
-        db.commit()
-        return summarized_docs
 
-    except Exception as e:
-        logging.error(f"Pipeline Error: {e}")
-        contract_entry.status = ProcessingStatus.FAILED
-        db.commit()
-        return []
-    finally:
-        db.close()
+# --- Document Handler ---
+
+# --- Chunking ---
+
+
+
+
+# --- Add Summaries to Documents ---
+
+
+# --- Full Pipeline ---
+
 
 # --- LangChain Tool Registration ---
 @tool
