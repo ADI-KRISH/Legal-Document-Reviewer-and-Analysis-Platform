@@ -59,3 +59,6 @@ index/
 *.db
 # Streamlit
 .streamlit/secrets.toml
+
+# Local debug output files
+data.txt

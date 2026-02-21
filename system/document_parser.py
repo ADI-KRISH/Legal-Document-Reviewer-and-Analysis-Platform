@@ -45,34 +45,27 @@ API_KEY = os.getenv("OPENAI_API_KEY")
 if not API_KEY:
     logging.warning("OpenAI API Key not found. Please set 'OPENAI_API_KEY' in .env")
 
-embeddings = OpenAIEmbeddings(
-    model="text-embedding-3-small"
-)
 BUCKET = "legal_uploads"
-
 CHROMA_PATH = "chroma_storage"
-vector_store = Chroma(
-    collection_name="legal_docs",
-    embedding_function=embeddings,
-    persist_directory=CHROMA_PATH
-)
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000,
-    chunk_overlap=200
-)
 
-# --- LLM for Summarization (Using OpenAI) ---
-summarizer_llm = ChatOpenAI(
-    model="gpt-4o-mini",
-    temperature=0
-)
 class DocumentProcessor:
     def __init__(self):
-        self.embeddings = embeddings 
-        self.vector_storage = vector_store
-        self.text_splitter = text_splitter
-        self.summarizer_llm = summarizer_llm
+        print("[DocumentProcessor] Initializing embeddings...")
+        self.embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+        print("[DocumentProcessor] Initializing ChromaDB vector store...")
+        self.vector_storage = Chroma(
+            collection_name="legal_docs",
+            embedding_function=self.embeddings,
+            persist_directory=CHROMA_PATH
+        )
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=200
+        )
+        print("[DocumentProcessor] Initializing LLM...")
+        self.summarizer_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
         self.bucket = BUCKET
+        print("[DocumentProcessor] ✅ Ready.")
     def handle_document(self,filepath: str) -> list:
         extracted_at = datetime.now().isoformat()
         docs = []
