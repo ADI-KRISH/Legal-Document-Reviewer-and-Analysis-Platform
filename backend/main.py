@@ -13,8 +13,30 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.path.join(BACKEND_DIR, "data.txt")
 
+MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "http://localhost:9000")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
+MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
+MINIO_BUCKET = os.getenv("MINIO_BUCKET_NAME", "legal-uploads")
+
+try :
+    sys.path.append(r"C:/Users/GS Adithya Krishna/Desktop/study/agentic ai/project/system")
+    from doc_manager import Document_Processor  
+except Exception as e :
+    print("could not import doc_manager")
+
+try :
+    s3_client = boto3.client(
+    "s3",
+    endpoint_url=MINIO_ENDPOINT,
+    aws_access_key_id=MINIO_ACCESS_KEY,
+    aws_secret_access_key=MINIO_SECRET_KEY,
+)
+except  Exception as e:
+    print(f"Error connecting to MinIO: {e}")
+
 project_root = os.path.dirname(BACKEND_DIR)
 system_path = os.path.join(project_root, "system")
+
 if system_path not in sys.path:
     sys.path.append(system_path)
 
@@ -25,89 +47,60 @@ except ImportError:
     pass
 
 load_dotenv(os.path.join(system_path, ".env"))
-try:
-    _chroma_client = chromadb.PersistentClient(
-        path=os.path.join(BACKEND_DIR, "chroma_storage")
-    )
-    vector_storage = _chroma_client.get_or_create_collection("legal_documents")
-except Exception as e:
-    print(f"Failed to initialize vector storage: {e}")
-    vector_storage = None
+# try:
+#     _chroma_client = chromadb.PersistentClient(
+#         path=os.path.join(BACKEND_DIR, "chroma_storage")
+#     )
+#     vector_storage = _chroma_client.get_or_create_collection("legal_documents")
+# except Exception as e:
+#     print(f"Failed to initialize vector storage: {e}")
+#     vector_storage = None
 try:
     from orchestrator import Orchestrator
     from negotiation_agent import Negotiation_Agent
-    from document_parser import DocumentProcessor
+    # from document_parser import DocumentProcessor
 except ImportError as e:
     print(f"Failed to import local modules: {e}")
-text_splitter = RecursiveCharacterTextSplitter(
-    separators=["\n\n", "\n", ".", " "],
-    chunk_size=1000,
-    chunk_overlap=200,
-    length_function=len,
-)
-
-MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "http://localhost:9000")
-MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
-MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
-MINIO_BUCKET = os.getenv("MINIO_BUCKET_NAME", "legal-uploads")
-
-s3_client = boto3.client(
-    "s3",
-    endpoint_url=MINIO_ENDPOINT,
-    aws_access_key_id=MINIO_ACCESS_KEY,
-    aws_secret_access_key=MINIO_SECRET_KEY,
-)
 
 
-def process_document(bucket: str, file_key: str):
-    with open(DATA_FILE, "a", encoding="utf-8") as f:
-        f.write(f"\n=== Task started for: {file_key} ===\n")
-    try:
-        response = s3_client.get_object(Bucket=bucket, Key=file_key)
-        body = response["Body"].read()
-
-        doc = fitz.open(stream=body, filetype="pdf")
-        text = "".join(page.get_text() for page in doc)
-        doc.close()
-        chunks = text_splitter.split_text(text)
-        print("split complete")
-        for i, chunk in enumerate(chunks):
-            vector_storage.add(
-                documents = [chunk],
-                ids = [f"chunk_{i}"],
-                metadatas = [{"chunk_index": i, "source": file_key}]
-            )
-        print(f"[ChromaDB] Stored {len(chunks)} chunks in '{file_key}'")
-
-        with open(DATA_FILE, "a", encoding="utf-8") as f:
-            f.write(text)
-        return "Done"
-
-    except Exception as e:
-        err = traceback.format_exc()
-        with open(DATA_FILE, "a", encoding="utf-8") as f:
-            f.write(f"\nERROR: {e}\n{err}\n")
-        return None
+# text_splitter = RecursiveCharacterTextSplitter(
+#     separators=["\n\n", "\n", ".", " "],
+#     chunk_size=1000,
+#     chunk_overlap=200,
+#     length_function=len,
+# )
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    try:
-        s3_client.head_bucket(Bucket=MINIO_BUCKET)
-    except ClientError:
-        try:
-            s3_client.create_bucket(Bucket=MINIO_BUCKET)
-        except Exception as e:
-            print(f"Storage initialization failed: {e}")
-    yield
 
+# def process_document(bucket: str, file_key: str):
+#     with open(DATA_FILE, "a", encoding="utf-8") as f:
+#         f.write(f"\n=== Task started for: {file_key} ===\n")
+#     try:
+#         response = s3_client.get_object(Bucket=bucket, Key=file_key)
+#         body = response["Body"].read()
 
-app = FastAPI(lifespan=lifespan, title="Legal Document Reviewer AI")
+#         doc = fitz.open(stream=body, filetype="pdf")
+#         text = "".join(page.get_text() for page in doc)
+#         doc.close()
+#         chunks = text_splitter.split_text(text)
+#         print("split complete")
+#         for i, chunk in enumerate(chunks):
+#             vector_storage.add(
+#                 documents = [chunk],
+#                 ids = [f"chunk_{i}"],
+#                 metadatas = [{"chunk_index": i, "source": file_key}]
+#             )
+#         print(f"[ChromaDB] Stored {len(chunks)} chunks in '{file_key}'")
 
+#         with open(DATA_FILE, "a", encoding="utf-8") as f:
+#             f.write(text)
+#         return "Done"
 
-class NegotiationRequest(BaseModel):
-    clauses: dict
-    risks: dict
+#     except Exception as e:
+#         err = traceback.format_exc()
+#         with open(DATA_FILE, "a", encoding="utf-8") as f:
+#             f.write(f"\nERROR: {e}\n{err}\n")
+#         return None
 
 
 _orchestrator = None
@@ -129,11 +122,31 @@ def get_negotiation_agent():
     return _negotiation_agent
 
 
-def get_document_processor():
-    global _document_processor
-    if _document_processor is None:
-        _document_processor = DocumentProcessor()
-    return _document_processor
+processor = Document_Processor()
+def document_ingestion(file_name:str,bucket_name:str,s3_client):
+    try:
+        processor.store_data(file_name,bucket_name,s3_client)
+    except Exception as e:
+        print(f"Error ingesting document: {e}")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        s3_client.head_bucket(Bucket=MINIO_BUCKET)
+    except ClientError:
+        try:
+            s3_client.create_bucket(Bucket=MINIO_BUCKET)
+        except Exception as e:
+            print(f"Storage initialization failed: {e}")
+    yield
+
+
+app = FastAPI(lifespan=lifespan, title="Legal Document Reviewer AI")
+
+
+class NegotiationRequest(BaseModel):
+    clauses: dict
+    risks: dict
 
 
 @app.get("/")
@@ -146,7 +159,7 @@ async def upload_file(background_tasks: BackgroundTasks, file: UploadFile = File
     try:
         s3_client.upload_fileobj(file.file, MINIO_BUCKET, file.filename)
         file_url = f"{MINIO_ENDPOINT}/{MINIO_BUCKET}/{file.filename}"
-        background_tasks.add_task(process_document, MINIO_BUCKET, file.filename)
+        background_tasks.add_task(document_ingestion, file.filename, MINIO_BUCKET, s3_client)
         return {
             "filename": file.filename,
             "location": file_url,
@@ -154,6 +167,26 @@ async def upload_file(background_tasks: BackgroundTasks, file: UploadFile = File
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/file_list")
+def file_list():
+    try:
+        response = s3_client.list_objects(Bucket=MINIO_BUCKET)
+        files = [content['Key'] for content in response.get('Contents',[])]
+        return {"files":files}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+@app.get("/file_info/{file_name}/{query}") 
+def file_response(file_name: str, query: str):
+    try:
+        # Client may send filename/query wrapped in quotes (%22...%22), strip them
+        file_name = file_name.strip('"').strip("'")
+        query = query.strip('"').strip("'")
+        print(f"[file_info] file='{file_name}' query='{query}'")
+        return processor.get_info(file_name, query)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @app.post("/negotiate")
