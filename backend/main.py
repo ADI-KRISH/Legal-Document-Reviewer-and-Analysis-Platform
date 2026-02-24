@@ -1,3 +1,4 @@
+from sympy.core.basic import _get_postprocessors
 import os
 import sys
 import boto3
@@ -106,6 +107,15 @@ except ImportError as e:
 _orchestrator = None
 _negotiation_agent = None
 _document_processor = None
+_summariser = None
+
+from summariser import Summariser
+def get_summariser():
+    global _summariser
+    if _summariser is None:
+        _summariser = Summariser()
+    return _summariser
+
 
 
 def get_orchestrator():
@@ -121,11 +131,15 @@ def get_negotiation_agent():
         _negotiation_agent = Negotiation_Agent()
     return _negotiation_agent
 
+def get_document_processor():
+    global _document_processor
+    if _document_processor is None:
+        _document_processor = Document_Processor()
+    return _document_processor
 
-processor = Document_Processor()
 def document_ingestion(file_name:str,bucket_name:str,s3_client):
     try:
-        processor.store_data(file_name,bucket_name,s3_client)
+        get_document_processor().store_data(file_name,bucket_name,s3_client)
     except Exception as e:
         print(f"Error ingesting document: {e}")
 
@@ -176,6 +190,7 @@ def file_list():
         return {"files":files}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+        
 @app.get("/file_info/{file_name}/{query}") 
 def file_response(file_name: str, query: str):
     try:
@@ -195,8 +210,13 @@ def plan(file_name: str, query: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-
+@app.get("/summary/{file_name}")
+def summary(file_name:str):
+    try:
+        result = get_summariser().summarize(file_name)
+        return {"summary":result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/negotiate")
 def negotiate(request: NegotiationRequest):

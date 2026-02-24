@@ -50,13 +50,12 @@ class Document_Processor:
             os.unlink(tmp_path)  
 
             print(f"[store_data] Markdown length: {len(markdown_docs)} chunks. Splitting...")
-            split_markdown = self.text_splitter.split_text(markdown_docs)
+            joined_markdown = "\n\n".join([doc.page_content for doc in markdown_docs])
+            split_markdown = self.text_splitter.split_text(joined_markdown)
             print(f"[store_data] Got {len(split_markdown)} chunks. Storing in ChromaDB...")
 
-            # Use filename hash as prefix so IDs are unique per file
             file_hash = hashlib.md5(file_name.encode()).hexdigest()[:8]
 
-            # Delete old chunks for this file before re-inserting (handles re-uploads)
             try:
                 existing = self.collection.get(where={"source": file_name})
                 if existing["ids"]:
@@ -71,10 +70,10 @@ class Document_Processor:
                     documents=[chunk],
                     metadatas=[{"chunk_index": i, "source": file_name}],
                 )
-            print(f"[ChromaDB] ✅ Stored '{file_name}' with {len(split_markdown)} chunks.")
+            print(f"[ChromaDB]  Stored '{file_name}' with {len(split_markdown)} chunks.")
         except Exception as e:
             import traceback
-            print(f"[store_data] ❌ Error: {e}")
+            print(f"[store_data]  Error: {e}")
             print(traceback.format_exc())
     def get_info(self,file_name:str,query:str):
         try :
