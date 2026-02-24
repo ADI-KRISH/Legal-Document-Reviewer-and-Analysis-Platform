@@ -187,6 +187,15 @@ def file_response(file_name: str, query: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/plan/{file_name}/{query}")
+def plan(file_name: str, query: str):
+    try:
+        result = get_orchestrator().activate_orchestrator(query)
+        return {"plan": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 
 
 @app.post("/negotiate")

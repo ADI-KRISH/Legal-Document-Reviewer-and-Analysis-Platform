@@ -65,3 +65,6 @@ data.txt
 
 # Test / scratch files
 backend/test_chroma_splitter.py
+
+markdowns/
+sample_documents/

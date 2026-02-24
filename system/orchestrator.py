@@ -19,14 +19,15 @@ class Orchestrator:
         )
 
         self.prompt = PromptTemplate(
-            input_variables=["user_query", "state_summary"],
+            input_variables=["user_query", "state_summary","document_summary"],
             template="""
 You are the Orchestrator (Planner Agent) for a Multi-Agent Legal Document Reviewer system.
 
 Your task:
 - Read the user query
 - Look at the current shared state summary
-- Decide which agents must be executed and in what order
+- Look at the document summary
+- Decide which agents must be executed and in what order by referring the query and the doc summary
 - Return a JSON execution plan ONLY (no extra text)
 
 ------------------------------------------------------------
@@ -136,6 +137,14 @@ Outputs:
 When to use :
 - When user asks : "synthesize report"
 This should be the last agent to be called as in it responsible for generating the final report unless the user is asking for a final report and you have chosen the report generator agent 
+------------------------------------------------------------
+Document Summary
+------------------------------------------------------------
+{document_summary}
+
+-what kind of document is this 
+-what is the purpose of this document 
+-what are the key terms of this document 
 
 ------------------------------------------------------------
 STATE SUMMARY (what already exists)
@@ -189,12 +198,21 @@ IMPORTANT:
 """
     # normalize = 
         )
-    def activate_orchetrator(self,user_query,state_summary):
+    DEFAULT_EMPTY_STATE = {
+        "clauses_json": None,
+        "risk_json": None,
+        "negotiation_json": None,
+        "report": None
+    }
+
+    def activate_orchestrator(self, user_query,doc_summary,state_summary=None):
+        if state_summary is None:
+            state_summary = self.DEFAULT_EMPTY_STATE
         message = [
             self.system_message,
-            self.prompt.format(user_query=user_query, state_summary=state_summary)
+            self.prompt.format(user_query=user_query, state_summary=state_summary,document_summary=doc_summary)
         ]
-        response  = self.model.invoke(message)
+        response = self.model.invoke(message)
         content = response.content.strip()
         if content.startswith("```json"):
             content = content[7:]
