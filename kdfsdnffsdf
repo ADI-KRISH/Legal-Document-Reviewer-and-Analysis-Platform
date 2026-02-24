@@ -1,0 +1,181 @@
+[33mcommit dd484a90cda17101d0c31d6940ff95dc5c0055b4[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Wed Feb 25 00:17:14 2026 +0530
+
+    added summarry api
+
+[33mcommit abc1f6bf5c2476554086a5e02bcb682b13555ba5[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Tue Feb 24 23:21:50 2026 +0530
+
+    added doc summariser
+
+[33mcommit f1b9b6eb1563f183978d7531006c2515901a4a50[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Tue Feb 24 21:01:53 2026 +0530
+
+    added markdown splitting
+
+[33mcommit d2875da4b593b3e7ce12170f4c12d12ec65cf440[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Mon Feb 23 19:28:45 2026 +0530
+
+    feat: integrate Document_Processor with MinIO and ChromaDB
+    
+    - Add doc_manager.py: Document_Processor class that fetches PDFs from
+      MinIO, converts to markdown via pymupdf4llm, splits into chunks, and
+      stores in ChromaDB with per-file unique IDs (MD5-prefixed)
+    - Add /file_list and /file_info endpoints in main.py
+    - Strip surrounding quotes from path params in /file_info endpoint
+    - Add debug logging and full traceback on store_data errors
+    - Handle re-uploads by deleting old chunks before inserting new ones
+
+[33mcommit 1300fe6ceddf657feec57ac91c6dab94aa10334c[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sun Feb 22 19:28:34 2026 +0530
+
+    fix: use ChromaDB PersistentClient with collection; update .gitignore
+
+[33mcommit ac5e9e00079c572a272a39161def0337638ee409[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sat Feb 21 21:20:23 2026 +0530
+
+    feat: migrate to PyMuPDF for PDF parsing, fix lazy agent loading, use absolute paths for file writes
+
+[33mcommit ffccc8c50cb6a17a355808b245f78c2de91bccd3[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Fri Feb 20 20:09:46 2026 +0530
+
+    feat: integrate Docling and stabilize backend
+
+[33mcommit dd1476f119294074c88de78ffa5b95393fa05d9b[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Wed Feb 18 21:18:38 2026 +0530
+
+    feat: Implement streaming file upload and background processing
+
+[33mcommit b5680ce15765ce7b6cc5d7c9ebe992c44146f09f[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Tue Feb 17 18:26:08 2026 +0530
+
+    Refactor codebase: Remove unused files, clean main.py, optimize imports
+
+[33mcommit d0fd4a18845ca1f8778aa71fb1f915e137cc97e6[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Mon Feb 16 15:40:05 2026 +0530
+
+    Update backend with negotiation agent integration for testing
+
+[33mcommit 45bbcf6d5f07034356887967a684ed8ca512e62d[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Fri Sep 19 20:52:33 2025 +0530
+
+    Create README.md
+
+[33mcommit 0e2c33cfc4759e54cd16d1dd5c7388da127f1b2f[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sun Sep 7 17:43:26 2025 +0530
+
+    changes made
+
+[33mcommit 4706dcb25b8428704627307a433b40eb3b10e664[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sun Aug 24 23:12:36 2025 +0530
+
+    errors are there
+
+[33mcommit a17a202df4e4bc5b01b866f175855f3ee408608c[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sun Aug 24 22:42:40 2025 +0530
+
+    backend
+
+[33mcommit b6840f4c29720cc582585c37722b857e5f94e062[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sun Aug 24 07:30:47 2025 +0530
+
+    structure updated
+
+[33mcommit d4d32cb7c9067f8671a319071a2bcadc0d4c3a5a[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sun Aug 24 05:58:02 2025 +0530
+
+    streamlit app
+
+[33mcommit b9167bda13fb6715dfc362dacceb1b0868d23e1f[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sun Aug 24 05:49:01 2025 +0530
+
+    backend
+
+[33mcommit 0ae772eebead84a461e6dab3f4596950a79d797b[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sun Aug 24 05:04:21 2025 +0530
+
+    main agent
+
+[33mcommit e92c46d7cddc06b8a97d903a8f9aecf55483cb7a[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sat Aug 23 23:00:58 2025 +0530
+
+    main_agent
+
+[33mcommit da1dfa51a9fc5e7d8a8f838f1407d1d7c89b6d6a[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sat Aug 23 22:37:54 2025 +0530
+
+    updated
+
+[33mcommit 25764b58e4f53a18615af529d84ce13a673a9e18[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sat Aug 23 22:29:45 2025 +0530
+
+    update
+
+[33mcommit 380537d789b3c9dc85d01451ded515f9e4ab58f8[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sat Aug 23 21:57:15 2025 +0530
+
+    updated
+
+[33mcommit 7e5d8b70361aa0d5d6401aec507f9ba85d0e8887[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sat Aug 23 21:48:46 2025 +0530
+
+    updated legal_clause
+
+[33mcommit 09e9b644d373a97f68f363ccb845f438f0c00847[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sat Aug 23 21:36:05 2025 +0530
+
+    chroma updated
+
+[33mcommit 298efd8604034bc816901c3e921466d747a00cda[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sat Aug 23 21:18:31 2025 +0530
+
+    added chromadb
+
+[33mcommit 1232956e306b5bc7305fe5d72d64996990ca1db5[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Sat Aug 23 21:07:19 2025 +0530
+
+    changed file name
+
+[33mcommit a65d1a39b19024b6113946a70482cd3f71ec9542[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Mon Aug 11 05:57:06 2025 +0530
+
+    all the agents ready
+
+[33mcommit 7776719caa1bec49292b39bacf690825ff85e5e1[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Fri Aug 8 03:13:42 2025 +0530
+
+    document parser and legal data extracotr ready
+
+[33mcommit 299c8d90c0217840e20ef119dd3970fc66bac0ae[m
+Author: GS ADITHYA KRISHNA <adikrishactive@gmail.com>
+Date:   Wed Aug 6 06:48:12 2025 +0530
+
+    document parser
