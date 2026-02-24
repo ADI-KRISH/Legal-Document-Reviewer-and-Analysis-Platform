@@ -1,4 +1,4 @@
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter,MarkdownHeaderTextSplitter
 from chromadb import PersistentClient
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_core.documents import Document
@@ -25,22 +25,32 @@ class Document_Processor:
             chunk_overlap=200,
             length_function=len,
         )
+        self.headers_to_split_on = [
+                ("#", "Giant_Font_Text"),   
+                ("##", "Medium_Font_Text"),   
+                ("###", "Tiny_Bold_Text")        
+            ]
+        self.markdown_splitter = MarkdownHeaderTextSplitter(
+            headers_to_split_on=self.headers_to_split_on,
+            strip_headers=True,
+        )
     def store_data(self, file_name: str, bucket_name: str, s3_client):
         try:
             print(f"[store_data] Fetching '{file_name}' from bucket '{bucket_name}'...")
             response = s3_client.get_object(Bucket=bucket_name, Key=file_name)
             body = response['Body'].read()
             print(f"[store_data] Downloaded {len(body)} bytes. Converting to markdown...")
-
+            
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                 tmp.write(body)
                 tmp_path = tmp.name
 
             markdown = pmp.to_markdown(tmp_path)
+            markdown_docs = self.markdown_splitter.split_text(markdown)
             os.unlink(tmp_path)  
 
-            print(f"[store_data] Markdown length: {len(markdown)} chars. Splitting...")
-            split_markdown = self.text_splitter.split_text(markdown)
+            print(f"[store_data] Markdown length: {len(markdown_docs)} chunks. Splitting...")
+            split_markdown = self.text_splitter.split_text(markdown_docs)
             print(f"[store_data] Got {len(split_markdown)} chunks. Storing in ChromaDB...")
 
             # Use filename hash as prefix so IDs are unique per file
