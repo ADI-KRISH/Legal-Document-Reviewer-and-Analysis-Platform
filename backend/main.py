@@ -10,7 +10,7 @@ from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 from pydantic import BaseModel
 import chromadb
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+# from langchain_text_splitters import RecursiveCharacterTextSplitter
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.path.join(BACKEND_DIR, "data.txt")
 
@@ -171,7 +171,7 @@ async def root():
 @app.post("/upload_file")
 async def upload_file(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     try:
-        s3_client.upload_fileobj(file.file, MINIO_BUCKET, file.filename)
+        await s3_client.upload_fileobj(file.file, MINIO_BUCKET, file.filename)
         file_url = f"{MINIO_ENDPOINT}/{MINIO_BUCKET}/{file.filename}"
         background_tasks.add_task(document_ingestion, file.filename, MINIO_BUCKET, s3_client)
         return {
@@ -183,37 +183,30 @@ async def upload_file(background_tasks: BackgroundTasks, file: UploadFile = File
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/file_list")
-def file_list():
+async def file_list():
     try:
-        response = s3_client.list_objects(Bucket=MINIO_BUCKET)
+        response = await s3_client.list_objects(Bucket=MINIO_BUCKET)
         files = [content['Key'] for content in response.get('Contents',[])]
         return {"files":files}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
         
-@app.get("/file_info/{file_name}/{query}") 
-def file_response(file_name: str, query: str):
-    try:
-        # Client may send filename/query wrapped in quotes (%22...%22), strip them
-        file_name = file_name.strip('"').strip("'")
-        query = query.strip('"').strip("'")
-        print(f"[file_info] file='{file_name}' query='{query}'")
-        return processor.get_info(file_name, query)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# @app.get("/file_info/{file_name}/{query}") 
+# def file_response(file_name: str, query: str):
+#     try:
+#         # Client may send filename/query wrapped in quotes (%22...%22), strip them
+#         file_name = file_name.strip('"').strip("'")
+#         query = query.strip('"').strip("'")
+#         print(f"[file_info] file='{file_name}' query='{query}'")
+#         return processor.get_info(file_name, query)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/plan/{file_name}/{query}")
-def plan(file_name: str, query: str):
-    try:
-        result = get_orchestrator().activate_orchestrator(query)
-        return {"plan": result}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/summary/{file_name}")
-def summary(file_name:str):
+async def summary(file_name:str):
     try:
-        result = get_summariser().summarize(file_name)
+        result = await get_summariser().summarize(file_name)
         return {"summary":result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -224,6 +217,16 @@ def negotiate(request: NegotiationRequest):
         return get_negotiation_agent().negotiate(request.clauses, request.risks)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Negotiation failed: {str(e)}")
+
+@app.get("/plan/{file_name}/{query}")
+def plan(file_name: str, query: str):
+    try:
+        state_summary = {}
+        doc_summary = get_summariser().summarize(file_name)
+        result = get_orchestrator().activate_orchestrator(query,doc_summary,state_summary)
+        return {"plan": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
