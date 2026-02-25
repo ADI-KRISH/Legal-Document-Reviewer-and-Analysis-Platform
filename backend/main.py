@@ -171,7 +171,7 @@ async def root():
 @app.post("/upload_file")
 async def upload_file(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     try:
-        await s3_client.upload_fileobj(file.file, MINIO_BUCKET, file.filename)
+        s3_client.upload_fileobj(file.file, MINIO_BUCKET, file.filename)
         file_url = f"{MINIO_ENDPOINT}/{MINIO_BUCKET}/{file.filename}"
         background_tasks.add_task(document_ingestion, file.filename, MINIO_BUCKET, s3_client)
         return {
@@ -183,9 +183,9 @@ async def upload_file(background_tasks: BackgroundTasks, file: UploadFile = File
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/file_list")
-async def file_list():
+def file_list():
     try:
-        response = await s3_client.list_objects(Bucket=MINIO_BUCKET)
+        response = s3_client.list_objects(Bucket=MINIO_BUCKET)
         files = [content['Key'] for content in response.get('Contents',[])]
         return {"files":files}
     except Exception as e:
@@ -204,9 +204,9 @@ async def file_list():
 
 
 @app.get("/summary/{file_name}")
-async def summary(file_name:str):
+def summary(file_name:str):
     try:
-        result = await get_summariser().summarize(file_name)
+        result = get_summariser().summarize(file_name)
         return {"summary":result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
