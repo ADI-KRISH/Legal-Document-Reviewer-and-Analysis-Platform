@@ -1,6 +1,7 @@
 from sympy.core.basic import _get_postprocessors
 import os
 import sys
+import json
 import boto3
 import fitz
 import traceback
@@ -224,7 +225,8 @@ def plan(file_name: str, query: str):
         state_summary = {}
         doc_summary = get_summariser().summarize(file_name)
         result = get_orchestrator().activate_orchestrator(query,doc_summary,state_summary)
-        return {"plan": result}
+        parsed = json.loads(result)
+        return {'res': parsed , "plan": parsed.get('steps')}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
