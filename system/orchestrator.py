@@ -174,7 +174,7 @@ YOUR OUTPUT (STRICT JSON ONLY)
 Return ONLY a JSON object in this exact format:
 
 {{
-  "intent": "qa | extract_clauses | risk_analysis | negotiation | report | full_pipeline | ingestion",
+  "intent": "qa | extract_clauses | risk_analysis | negotiation | report | full_pipeline",
   "steps": [
     "agent_name_1",
     "agent_name_2"
@@ -183,7 +183,7 @@ Return ONLY a JSON object in this exact format:
 }}
 
 Valid agent_name values:
-- "document_parser_agent"
+
 - "qa_agent"
 - "clause_extraction_agent"
 - "risk_compliance_agent"
