@@ -40,5 +40,6 @@ def get_doc_text(file_name:str):
     document_text = "\n\n".join(chunks)
     return document_text
 def get_content(file_name:str,query:str):
+    results = legal_collection.query(query_texts=[query],n_results=5,where={'source':file_name})
+    return results
     
-    pass

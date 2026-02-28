@@ -1,16 +1,16 @@
 import os
 from dotenv import load_dotenv
 from typing import List, Optional
-
+from Database.vector_db import get_doc_text
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.runnables import RunnableLambda
-
+import chromadb
 load_dotenv()
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 class ClauseSection(BaseModel):
     clause_id: str = Field(..., description="Unique ID like CLS-001")
     heading: str = Field(..., description="Clause heading/title if available")
@@ -83,10 +83,21 @@ EXTRA INSTRUCTIONS:
             "source": x.get("source", "unknown_source"),
             "chunk_ids": x.get("chunk_ids", []),
         })
+        self.vector_db = chromadb.PersistentClient(
+    path=os.path.join(_PROJECT_ROOT, "backend", "db", "chroma_storage")
+)
+        self.collection = self.vector_db.get_or_create_collection(name="Legal_Docs")
 
         self.chain = normalize | self.prompt | self.llm | self.parser
+        
 
-    def extract_clauses(self, text: str, source: str = "unknown", chunk_ids: List[int] = None) -> ClauseExtractionOutput:
-        if chunk_ids is None:
-            chunk_ids = []
-        return self.chain.invoke({"text": text, "source": source, "chunk_ids": chunk_ids})
+    def extract_clauses(self, source: str) -> ClauseExtractionOutput:
+        results = self.collection.get(where={"source": source})
+        chunks = results.get("documents", [])
+        print(f"[ClauseAgent] Found {len(chunks)} chunks for '{source}'")
+        if not chunks:
+            print(f"[ClauseAgent] WARNING: No chunks found for source='{source}'. Was the file uploaded & processed?")
+            return ClauseExtractionOutput()
+        doc_text = "\n\n".join(chunks)
+        return self.chain.invoke({"text": doc_text, "source": source, "chunk_ids": results.get("ids", [])})
+

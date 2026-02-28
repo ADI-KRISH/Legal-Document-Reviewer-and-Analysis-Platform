@@ -60,6 +60,7 @@ load_dotenv(os.path.join(system_path, ".env"))
 try:
     from orchestrator import Orchestrator
     from negotiation_agent import Negotiation_Agent
+    from clause_extraction_agent import Clause_Extraction_Agent
     # from document_parser import DocumentProcessor
 except ImportError as e:
     print(f"Failed to import local modules: {e}")
@@ -109,6 +110,7 @@ _orchestrator = None
 _negotiation_agent = None
 _document_processor = None
 _summariser = None
+_clause_agent = None
 
 from summariser import Summariser
 def get_summariser():
@@ -125,6 +127,11 @@ def get_orchestrator():
         _orchestrator = Orchestrator()
     return _orchestrator
 
+def get_clause_agent():
+    global _clause_agent
+    if _clause_agent is None:
+        _clause_agent = Clause_Extraction_Agent()
+    return _clause_agent
 
 def get_negotiation_agent():
     global _negotiation_agent
@@ -230,6 +237,12 @@ def plan(file_name: str, query: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/clauses/{file_name}")
+def get_clauses(file_name: str):
+    try:
+        return get_clause_agent().extract_clauses(file_name)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
