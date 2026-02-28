@@ -69,3 +69,10 @@ backend/test_chroma_splitter.py
 markdowns/
 sample_documents/
 db_test.py
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.*

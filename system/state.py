@@ -1,3 +1,4 @@
+from system.clause_extraction_agent import Clause_Extraction_Agent
 from typing import TypedDict,Dict
 from pydantic import BaseModel
 from typing import Annotated
@@ -92,6 +93,12 @@ def QNA_Agent(state:SharedState) -> SharedState:
             'iteration' : state['iteration'] + 1,
             'execution' : state['execution']
             } 
+
+
+def clause_extraction_agent(state:SharedState)->SharedState:
+    clause_extraction_agent = Clause_Extraction_Agent()
+    pass 
+
 def routing(state:SharedState) -> SharedState:
     next_agent = state.get('next_agent','finish')
     print(next_agent)

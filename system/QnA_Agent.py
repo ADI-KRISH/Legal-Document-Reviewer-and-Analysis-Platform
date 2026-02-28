@@ -28,7 +28,6 @@ class QnA_Agent:
         self.file_name = file_name
         self.vector_store = PersistentClient(path=r"C:/Users/GS Adithya Krishna/Desktop/study/agentic ai/project/backend/db/chroma_storage")
         self.collection = self.vector_store.get_or_create_collection(name="Legal_Docs")
-        
         self.chain = self.prompt | self.llm | self.parser
     def get_answer(self, query:str) ->QnA_Output:
         document = self.collection.query(query_texts=[query],n_results=5,where={"source":self.file_name})

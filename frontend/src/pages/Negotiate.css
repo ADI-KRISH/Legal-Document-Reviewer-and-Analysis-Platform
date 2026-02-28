@@ -1,0 +1,53 @@
+.neg-hero {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    padding: 1.5rem;
+}
+
+.neg-hero-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.neg-hero-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-1);
+    margin-bottom: 0.35rem;
+}
+
+.neg-hero-desc {
+    font-size: 0.85rem;
+    color: var(--text-2);
+    line-height: 1.6;
+}
+
+.neg-textarea {
+    min-height: 220px;
+    font-size: 0.78rem;
+    font-family: 'Courier New', monospace;
+}
+
+.neg-submit {
+    width: 100%;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.neg-result {
+    margin-top: 1.25rem;
+}
+
+.neg-result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.neg-result-body {
+    font-size: 0.875rem;
+    line-height: 1.85;
+    color: var(--text-1);
+    white-space: pre-wrap;
+}

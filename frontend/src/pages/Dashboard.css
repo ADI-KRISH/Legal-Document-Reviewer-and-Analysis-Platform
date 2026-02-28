@@ -1,0 +1,173 @@
+.dash-hero {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(79, 70, 229, 0.06) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: var(--radius);
+    padding: 3rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.dash-hero::before {
+    content: '';
+    position: absolute;
+    top: -80px;
+    right: -80px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.18), transparent 70%);
+    border-radius: 50%;
+}
+
+.dash-hero-badge {
+    display: inline-flex;
+    padding: 0.3rem 0.85rem;
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    margin-bottom: 1.25rem;
+}
+
+.dash-hero-title {
+    font-size: 2.75rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.15;
+    color: var(--text-1);
+    margin-bottom: 1rem;
+}
+
+.dash-hero-accent {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2), #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.dash-hero-desc {
+    color: var(--text-2);
+    max-width: 560px;
+    line-height: 1.7;
+    margin-bottom: 1.75rem;
+}
+
+.dash-hero-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.stat-card {
+    text-align: center;
+    padding: 1.75rem 1rem;
+}
+
+.stat-icon {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-2);
+    margin-top: 0.2rem;
+}
+
+.dash-action {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1rem 1.1rem;
+    text-align: left;
+    width: 100%;
+    background: var(--bg-glass);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-1);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.dash-action:hover {
+    border-color: rgba(99, 102, 241, 0.35);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.dash-action-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.dash-action-label {
+    flex: 1;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.dash-feature {
+    padding: 1.4rem;
+}
+
+.dash-feature-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.65rem;
+}
+
+.dash-feature-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-1);
+    margin-bottom: 0.4rem;
+}
+
+.dash-feature-desc {
+    font-size: 0.8rem;
+    color: var(--text-2);
+    line-height: 1.6;
+}
+
+.arch-flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.arch-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.arch-node {
+    padding: 0.45rem 0.9rem;
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--accent-2);
+    white-space: nowrap;
+}
+
+.arch-arrow {
+    color: var(--text-3);
+    font-size: 1rem;
+}

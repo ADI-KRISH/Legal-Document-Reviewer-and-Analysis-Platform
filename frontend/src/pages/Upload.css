@@ -1,0 +1,164 @@
+.upload-wrapper {
+    max-width: 700px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.drop-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3.5rem 2rem;
+    border: 2px dashed var(--border);
+    cursor: pointer;
+    text-align: center;
+    transition: var(--transition);
+    min-height: 260px;
+}
+
+.drop-zone:hover,
+.drop-zone--active {
+    border-color: var(--accent);
+    background: rgba(99, 102, 241, 0.05);
+    box-shadow: 0 0 32px var(--accent-glow);
+}
+
+.drop-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.drop-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-1);
+    margin-bottom: 0.35rem;
+}
+
+.drop-sub {
+    color: var(--text-2);
+    font-size: 0.9rem;
+}
+
+.drop-link {
+    color: var(--accent-2);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.drop-formats {
+    font-size: 0.75rem;
+    color: var(--text-3);
+    margin-top: 0.75rem;
+}
+
+.file-preview {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+}
+
+.file-preview-icon {
+    font-size: 2rem;
+}
+
+.file-preview-info {
+    flex: 1;
+}
+
+.file-preview-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-1);
+    word-break: break-all;
+}
+
+.file-preview-size {
+    font-size: 0.78rem;
+    color: var(--text-2);
+}
+
+.upload-status {
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.upload-success {
+    text-align: center;
+    padding: 2.5rem 2rem;
+}
+
+.success-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.success-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.success-msg {
+    color: var(--text-2);
+    font-size: 0.875rem;
+}
+
+.success-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.upload-btn {
+    width: 100%;
+    justify-content: center;
+}
+
+.upload-tips {
+    padding: 1.5rem;
+}
+
+.tips-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+}
+
+.tip-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--accent-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.tip-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-1);
+}
+
+.tip-desc {
+    font-size: 0.8rem;
+    color: var(--text-2);
+    margin-top: 0.15rem;
+}

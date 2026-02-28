@@ -1,0 +1,52 @@
+.summary-back {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+}
+
+.summary-doc-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.summary-doc-icon {
+    font-size: 2rem;
+}
+
+.summary-doc-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-1);
+    word-break: break-all;
+}
+
+.summary-doc-label {
+    font-size: 0.75rem;
+    color: var(--text-2);
+    margin-top: 0.1rem;
+}
+
+.summary-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.summary-card {
+    margin-bottom: 1.25rem;
+}
+
+.summary-body {
+    font-size: 0.9rem;
+    line-height: 1.85;
+    color: var(--text-1);
+    white-space: pre-wrap;
+}
+
+.summary-next {
+    padding: 1.5rem;
+}
