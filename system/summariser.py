@@ -1,4 +1,4 @@
-from re import search
+from chromadb import PersistentClient
 from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import OpenAIEmbeddings
@@ -7,10 +7,13 @@ import os
 from dotenv import load_dotenv
 from chromadb import PersistentClient
 load_dotenv()
+
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_CHROMA_PATH = os.path.join(_PROJECT_ROOT, "backend", "db", "chroma_storage")
 class Summariser :
     def __init__(self):
         self.model = ChatGroq(model="llama-3.3-70b-versatile",api_key=os.getenv("grok"))
-        self.vector_store = PersistentClient(path=r"C:/Users/GS Adithya Krishna/Desktop/study/agentic ai/project/backend/db/chroma_storage")
+        self.vector_store = PersistentClient(path=_CHROMA_PATH)
         print(self.vector_store)
         self.collection  = self.vector_store.get_or_create_collection(name="Legal_Docs")
         print(self.collection)

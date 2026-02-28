@@ -10,6 +10,9 @@ from chromadb import PersistentClient
 
 load_dotenv()
 os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY')
+
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_CHROMA_PATH = os.path.join(_PROJECT_ROOT, "backend", "db", "chroma_storage")
 class QnA_Output(BaseModel):
     answer : str = Field(...,description="Grounded answer to the question")
     citation : List[str] = Field(default_factory=list,description="chunk / page id used ")
@@ -26,7 +29,7 @@ class QnA_Agent:
                                      -Keep the answer short concise and factual and professional
                                      """)
         self.file_name = file_name
-        self.vector_store = PersistentClient(path=r"C:/Users/GS Adithya Krishna/Desktop/study/agentic ai/project/backend/db/chroma_storage")
+        self.vector_store = PersistentClient(path=_CHROMA_PATH)
         self.collection = self.vector_store.get_or_create_collection(name="Legal_Docs")
         self.chain = self.prompt | self.llm | self.parser
     def get_answer(self, query:str) ->QnA_Output:

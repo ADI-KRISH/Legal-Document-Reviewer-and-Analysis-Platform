@@ -8,7 +8,9 @@ import hashlib
 import tempfile
 import fitz as fz
 import pymupdf4llm as pmp
-CHROMA_PATH = r"C:/Users/GS Adithya Krishna/Desktop/study/agentic ai/project/backend/db/chroma_storage"
+# Portable path: system/ -> project root -> backend/db/chroma_storage
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CHROMA_PATH = os.path.join(_PROJECT_ROOT, "backend", "db", "chroma_storage")
 COLLECTION_NAME = "Legal_Docs"
 load_dotenv()
 
