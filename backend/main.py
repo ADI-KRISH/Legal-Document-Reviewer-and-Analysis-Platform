@@ -5,6 +5,7 @@ import json
 import boto3
 import fitz
 import traceback
+from langchain_openai import OpenAIEmbeddings
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException
 from botocore.exceptions import ClientError
@@ -151,8 +152,10 @@ def document_ingestion(file_name:str,bucket_name:str,s3_client):
     except Exception as e:
         print(f"Error ingesting document: {e}")
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    
     try:
         s3_client.head_bucket(Bucket=MINIO_BUCKET)
     except ClientError:
