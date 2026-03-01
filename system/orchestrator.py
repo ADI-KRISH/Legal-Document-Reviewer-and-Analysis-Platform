@@ -135,8 +135,8 @@ Purpose :
 Outputs: 
 - "synthesized report" : string
 When to use :
-- When user asks : "synthesize report"
-This should be the last agent to be called as in it responsible for generating the final report unless the user is asking for a final report and you have chosen the report generator agent 
+- You should call this all the time to give the user a proper response 
+- Synthesiser should be sent all the data from all agents you have chosen for the query the user gave you At all the times it should be the end of the plan unless you are going to use the QnA Agent.
 ------------------------------------------------------------
 Document Summary
 ------------------------------------------------------------

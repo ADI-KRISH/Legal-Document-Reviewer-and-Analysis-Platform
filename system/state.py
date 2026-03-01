@@ -5,6 +5,7 @@ from typing import Annotated
 from orchestrator import Orchestrator
 from risk_analyser import Risk_Analyser
 from negotiation_agent import Negotiation_Agent
+from synthesizer_agent import Synthesizer_Agent
 from summariser import Summariser
 from QnA_Agent import QnA_Agent
 from negotiation_agent import Negotiation_Agent
@@ -67,8 +68,10 @@ def orchestrate(state:SharedState) -> SharedState:
             'reason' : AIMessage(content = f"Orchestrator routing to {plan[0]} because {state['reason']}"),
             'iteration' : state['iteration'] + 1,
             'current_agent' : 'Orchestrator',
-            'next_agent' : plan[0]
+            'next_agent' : plan[0],
+            'synthesizer_in' : state['synthesizer_in'] + AIMessage(content = plan)
             } 
+
     for agent in state['plan']:
         if state['execution'][agent] == False:
             return {
@@ -91,7 +94,8 @@ def QNA_Agent(state:SharedState) -> SharedState:
             'current_agent' : 'QnA_Agent',
             'next_agent' : 'Orchestrator',
             'iteration' : state['iteration'] + 1,
-            'execution' : {**state['execution'], 'QnA_Agent' : True}
+            'execution' : {**state['execution'], 'QnA_Agent' : True},
+            'synthesizer_in' : state['synthesizer_in'] + [AIMessage(content = answer.answer)],
             } 
 
 
@@ -103,7 +107,31 @@ def clause_extraction_agent(state:SharedState)->SharedState:
         'current_agent' : 'clause_extraction_agent',
         'next_agent' : 'Orchestrator',
         'iteration' : state['iteration'] + 1,
-        'execution' : {**state['execution'], 'clause_extraction_agent' : True}
+        'execution' : {**state['execution'], 'clause_extraction_agent' : True},
+        'synthesizer_in' : state['synthesizer_in'] + AIMessage(content = results)
+    }
+
+def synthesiser(state:SharedState)->SharedState:
+    synthesizer = Synthesizer_Agent()
+    response = synthesizer.run(state['synthesizer_in'] , state['user_query'])
+    return {
+        'synthesizer_out' : state['synthesizer_out'] + AIMessage(content = response),
+        'current_agent' : 'synthesiser',
+        'next_agent' : 'Orchestrator',
+        'iteration' : state['iteration'] + 1,
+        'execution' : {**state['execution'], 'synthesiser' : True},
+    }
+
+def risk_analyser(state:SharedState)->SharedState:
+    risk_analyser = Risk_Analyser()
+    response = risk_analyser.analyze_risk(state['clause_json'])
+    return {
+        'risk_json' : response,
+        'current_agent' : 'risk_analyser',
+        'next_agent' : 'Orchestrator',
+        'iteration' : state['iteration'] + 1,
+        'execution' : {**state['execution'], 'risk_analyser' : True},
+        'synthesizer_in' : state['synthesizer_in'] + AIMessage(content = response)
     }
 
 
