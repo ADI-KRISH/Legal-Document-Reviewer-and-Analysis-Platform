@@ -89,15 +89,24 @@ def QNA_Agent(state:SharedState) -> SharedState:
     return {'messages' : AIMessage(content = answer.answer),
             'citations' : answer.citation,
             'current_agent' : 'QnA_Agent',
-            'next_agent' : 'finish',
+            'next_agent' : 'Orchestrator',
             'iteration' : state['iteration'] + 1,
-            'execution' : state['execution']
+            'execution' : {**state['execution'], 'QnA_Agent' : True}
             } 
 
 
 def clause_extraction_agent(state:SharedState)->SharedState:
     clause_extraction_agent = Clause_Extraction_Agent()
-    pass 
+    results = clause_extraction_agent.extract_clauses(state['file_name'])
+    return {
+        'clause_json': results,
+        'current_agent' : 'clause_extraction_agent',
+        'next_agent' : 'Orchestrator',
+        'iteration' : state['iteration'] + 1,
+        'execution' : {**state['execution'], 'clause_extraction_agent' : True}
+    }
+
+
 
 def routing(state:SharedState) -> SharedState:
     next_agent = state.get('next_agent','finish')
