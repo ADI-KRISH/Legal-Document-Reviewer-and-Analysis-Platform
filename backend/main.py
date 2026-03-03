@@ -112,6 +112,7 @@ _negotiation_agent = None
 _document_processor = None
 _summariser = None
 _clause_agent = None
+_report_generator = None
 
 from summariser import Summariser
 def get_summariser():
@@ -120,7 +121,12 @@ def get_summariser():
         _summariser = Summariser()
     return _summariser
 
-
+from report_generator_agent import ReportGeneratorAgent
+def get_report_agent():
+    global _report_generator
+    if _report_generator is None:
+        _report_generator = ReportGeneratorAgent()
+    return _report_generator
 
 def get_orchestrator():
     global _orchestrator
@@ -246,6 +252,14 @@ def get_clauses(file_name: str):
         return get_clause_agent().extract_clauses(file_name)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/report/{file_name}")
+def get_report(file_name:str):
+    try :
+        return get_report_agent().generate_report(file_name)
+    except Exception as e:
+        return HTTPException(status_code = 500 , detail = str(e))
+
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,52 +1,51 @@
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
-from langchain_core.output_parsers import PydanticOutputParser
-from pydantic import Basemodel,Field
-from dotnev import load_dotenv
-import os 
+from langchain_core.output_parsers import StrOutputParser
+from dotenv import load_dotenv
+import os
+import sys
+
 load_dotenv()
-DB_DIR = r"C:/Users/GS Adithya Krishna/Desktop/study/agentic ai/project/backend/Database"
-class ReportGeneratorOutput(BaseModel):
-    Report  : str = Field(...,description="The final Report Consisting of all the intricate details of the document")
-    
+
+# Portable path to backend/Database
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(_PROJECT_ROOT, "backend", "Database"))
+from vector_db import get_doc_text
+
 
 class ReportGeneratorAgent:
     def __init__(self):
-        self.llm = ChatOpenAI(temperature=0,model="gpt-3.5-turbo")
-        self.parser = PydanticOutputParser(pydantic_object=ReportGeneratorOutput)
+        self.llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")
         self.prompt = PromptTemplate(
             input_variables=["text", "source"],
-            partial_variables={"format_instructions": self.parser.get_format_instructions()},
-            template = """ 
-            You are a Report Generator Agent for a legal contract analysis system.
+            template="""
+You are a Report Generator Agent for a legal contract analysis system.
 
 TASK:
-Generate a comprehensive report based on the given legal text.
+Generate a comprehensive, well-structured plain-text report based on the given legal document.
+Include: parties, key dates, obligations, termination terms, IP rights, remedies, governing law.
 
-IMPORTANT RULES (STRICT):
-- Extract ONLY information explicitly present in the input text.
+RULES:
+- Extract ONLY information explicitly present in the text.
 - Do NOT invent clauses, parties, dates, or legal terms.
-- Do NOT add external legal knowledge or assumptions.
-- Preserve original contract wording inside "full_text".
-- If a field is missing, return an empty list (do not guess).
-- Output MUST follow the schema exactly.
-- Output MUST be valid JSON only.
+- Preserve exact contract wording for key clauses.
+- Structure the report with clear numbered headings (no JSON, plain text only).
 
-INPUT File Name:
-- source: {source}
+Document: {source}
 
 LEGAL TEXT:
 {text}
 
-{format_instructions}
-
-EXTRA INSTRUCTIONS:
-- clause_id must be sequential: CLS-001, CLS-002, CLS-003...
-- heading should be taken from the text if present, else use a short label.
-            """
+REPORT:
+"""
         )
-        def generate_report(self,text:str,source:str) -> ReportGeneratorOutput:
-            self.chain = self.prompt | self.llm | self.parser
-            doc_text = get_doc_text(source)
-            return self.chain.invoke({"text":doc_text,"source":source})
-        
+        self.chain = self.prompt | self.llm | StrOutputParser()
+
+    def generate_report(self, source: str) -> dict:
+        print(f"[ReportAgent] Generating report for: {source}")
+        doc_text = get_doc_text(source)
+        if not doc_text:
+            return {"report": "No document text found. Was the file uploaded and processed?", "source": source}
+        print("[ReportAgent] Got doc text, invoking LLM...")
+        report = self.chain.invoke({"text": doc_text, "source": source})
+        return {"report": report, "source": source}
