@@ -1,3 +1,4 @@
+from system.report_generator_agent import ReportGeneratorAgent
 from system.clause_extraction_agent import Clause_Extraction_Agent
 from typing import TypedDict,Dict
 from pydantic import BaseModel
@@ -18,7 +19,7 @@ DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable
 
 class SharedState(TypedDict):
     document_uploaded : bool
-    file_name : str
+    file_name : Annotated[list[str],add_messages]
     messages : Annotated[list[str],add_messages]
     negotiation_json : Dict[str,any]
     risk_json : Dict[str,any]
@@ -134,6 +135,18 @@ def risk_analyser(state:SharedState)->SharedState:
         'synthesizer_in' : state['synthesizer_in'] + AIMessage(content = response)
     }
 
+
+def report_generator(state:State)->State:
+    report_generator_agent = ReportGeneratorAgent()
+    report = report_generator_agent.generate_report(state['file_name'])
+    return {
+        'next_agent' : 'Orchestrator',
+        'current_agent' : 'report_generator',
+        'report' : report,
+        'iteration' : state['iteration'] + 1,
+        'execution' : {**state['execution'], 'report_generator' : True},
+            }
+    pass
 
 
 def routing(state:SharedState) -> SharedState:
