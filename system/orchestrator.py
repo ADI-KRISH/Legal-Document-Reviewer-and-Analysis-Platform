@@ -27,9 +27,11 @@ class Orchestrator:
         self.system_message = SystemMessage(
             content="You are an expert orchestrator that understands user inputs and creates a correct execution plan using the available agents."
         )
+        self.parser = PydanticOutputParser(pydantic_object=Orchestrator_Output)
 
         self.prompt = PromptTemplate(
-            input_variables=["user_query", "state_summary","document_summary"],
+            input_variables=["user_query", "state_summary","document_summary","results"],
+            partial_variables={"format_instructions": self.parser.get_format_instructions()},
             template="""
 You are the Orchestrator (Planner Agent) for a Multi-Agent Legal Document Reviewer system.
 
@@ -179,23 +181,7 @@ YOUR OUTPUT (STRICT JSON ONLY)
 ------------------------------------------------------------
 Return ONLY a JSON object in this exact format:
 
-{{
-  "intent": "qa | extract_clauses | risk_analysis | negotiation | report | full_pipeline",
-  "steps": [
-    "agent_name_1",
-    "agent_name_2"
-  ],
-  "reason": "1 short sentence why this plan was chosen"
-}}
-
-Valid agent_name values:
-
-- "qa_agent"
-- "clause_extraction_agent"
-- "risk_compliance_agent"
-- "research agent"
-- "negotiation_agent"
-- "report_generator_agent"
+{format_instructions}
 
 IMPORTANT:
 - Output MUST be valid JSON only
