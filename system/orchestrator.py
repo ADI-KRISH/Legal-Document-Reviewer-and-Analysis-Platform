@@ -3,8 +3,18 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import SystemMessage
 import os
 from dotenv import load_dotenv
+from pydantic import BaseModel
 
 load_dotenv()
+
+class Orchestrator_Output(BaseModel):
+    reason : str = Field(description="Reason for choosing this plan")
+    plan : list[str] = Field(description="List of agents to be executed")
+    document_in_use = Field(description="The current Document in use for which the plan is being created")
+    intent : str = Field(description="The intent of the user")
+    response  : str = Field(description="The response to the user after all the results are synthesised")
+    citations : list[str] = Field(description="The citations for the response")
+    
 
 
 class Orchestrator:
@@ -28,7 +38,10 @@ Your task:
 - Look at the current shared state summary
 - Look at the document summary
 - Decide which agents must be executed and in what order by referring the query and the doc summary
-- Return a JSON execution plan ONLY (no extra text)
+- Return a JSON with the plan of execution
+- After the Execution of all the agents and you will be given the result 
+ you will have to by yourself synthesise the output and give it back to the user 
+- The response should be clear cut and concise and should be in a format that can be easily understood by the user 
 
 ------------------------------------------------------------
 AVAILABLE AGENTS (TOOLS)
@@ -129,14 +142,7 @@ When to use:
 - When user asks: "generate report", "final report", "complete review", "full review summary and things like this . If you plan to call this agent then dont use synthesizer agent in that case this should be the last agent "
 - Requires Clause + Risk + Negotiation outputs first
 
-8) Synthesizer Agent 
-Purpose :
-- Synthesizes the output of all the agents  into a final report and is sent back to the user 
-Outputs: 
-- "synthesized report" : string
-When to use :
-- You should call this all the time to give the user a proper response 
-- Synthesiser should be sent all the data from all agents you have chosen for the query the user gave you At all the times it should be the end of the plan unless you are going to use the QnA Agent.
+
 ------------------------------------------------------------
 Document Summary
 ------------------------------------------------------------

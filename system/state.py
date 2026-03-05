@@ -6,7 +6,6 @@ from typing import Annotated
 from orchestrator import Orchestrator
 from risk_analyser import Risk_Analyser
 from negotiation_agent import Negotiation_Agent
-from synthesizer_agent import Synthesizer_Agent
 from summariser import Summariser
 from QnA_Agent import QnA_Agent
 from negotiation_agent import Negotiation_Agent
@@ -20,6 +19,7 @@ DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable
 class SharedState(TypedDict):
     document_uploaded : bool
     file_name : Annotated[list[str],add_messages]
+    results  : Annotated[list[Dict[str]],add_messages]
     messages : Annotated[list[str],add_messages]
     negotiation_json : Dict[str,any]
     risk_json : Dict[str,any]
@@ -28,9 +28,7 @@ class SharedState(TypedDict):
     iteration : int
     plan : Annotated[list[str],add_messages]
     user_query : Annotated[list[str],add_messages]
-    response : str
-    synthesizer_in : Annotated[list[str],add_messages]
-    synthesizer_out : Annotated[list[str],add_messages]
+    response : Annotated[list[str],add_messages]
     research_json : Dict[str,any]
     current_agent : str
     next_agent : str
@@ -70,7 +68,6 @@ def orchestrate(state:SharedState) -> SharedState:
             'iteration' : state['iteration'] + 1,
             'current_agent' : 'Orchestrator',
             'next_agent' : plan[0],
-            'synthesizer_in' : state['synthesizer_in'] + AIMessage(content = plan)
             } 
 
     for agent in state['plan']:
@@ -96,7 +93,6 @@ def QNA_Agent(state:SharedState) -> SharedState:
             'next_agent' : 'Orchestrator',
             'iteration' : state['iteration'] + 1,
             'execution' : {**state['execution'], 'QnA_Agent' : True},
-            'synthesizer_in' : state['synthesizer_in'] + [AIMessage(content = answer.answer)],
             } 
 
 
@@ -109,14 +105,12 @@ def clause_extraction_agent(state:SharedState)->SharedState:
         'next_agent' : 'Orchestrator',
         'iteration' : state['iteration'] + 1,
         'execution' : {**state['execution'], 'clause_extraction_agent' : True},
-        'synthesizer_in' : state['synthesizer_in'] + AIMessage(content = results)
     }
 
 def synthesiser(state:SharedState)->SharedState:
     synthesizer = Synthesizer_Agent()
     response = synthesizer.run(state['synthesizer_in'] , state['user_query'])
     return {
-        'synthesizer_out' : state['synthesizer_out'] + AIMessage(content = response),
         'current_agent' : 'synthesiser',
         'next_agent' : 'Orchestrator',
         'iteration' : state['iteration'] + 1,
@@ -132,7 +126,6 @@ def risk_analyser(state:SharedState)->SharedState:
         'next_agent' : 'Orchestrator',
         'iteration' : state['iteration'] + 1,
         'execution' : {**state['execution'], 'risk_analyser' : True},
-        'synthesizer_in' : state['synthesizer_in'] + AIMessage(content = response)
     }
 
 
@@ -146,8 +139,7 @@ def report_generator(state:State)->State:
         'iteration' : state['iteration'] + 1,
         'execution' : {**state['execution'], 'report_generator' : True},
             }
-    pass
-
+    
 
 def routing(state:SharedState) -> SharedState:
     next_agent = state.get('next_agent','finish')
