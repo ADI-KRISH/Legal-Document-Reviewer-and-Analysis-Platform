@@ -1,3 +1,4 @@
+from system.supervisor_dynamic import route_from_orchestrator
 from system.report_generator_agent import ReportGeneratorAgent
 from system.clause_extraction_agent import Clause_Extraction_Agent
 from typing import TypedDict,Dict
@@ -53,14 +54,15 @@ graph = StateGraph()
 
 def orchestrate(state:SharedState) -> SharedState:
     orchestrator = Orchestrator()
-    state_sumarry = state["state_summary"]
-    doc_summary = state["document_summary"]
-    user_query = state["user_query"]
+    state_sumarry = state.get("state_summary",{})
+    doc_summary = state.get("document_summary","")
+    user_query = state.get("user_query","")
     
-    if state.get('iteration') == 0 :
+    if state.get('iteration') == 0 or not state.get('plan'):
         result = orchestrator.run(user_query=user_query,state_summary=state_sumarry,document_summary=doc_summary)
-        state["plan"] = result.content["steps"].strip().lower()
+        state["plan"] = result.content["plan"].strip().lower()
         state["reason"] = result.content["reason"].strip().lower()    
+        state['document_name'] = result.content['document_in_use'].strip().lower()
         plan = state["plan"]
         return{
             'messages' : AIMessage(content = f"Orchestrator routing to {plan[0]} "),
@@ -78,11 +80,14 @@ def orchestrate(state:SharedState) -> SharedState:
                 'iteration' : state['iteration'] + 1,
                 'current_agent' : 'Orchestrator',
             }
+    final_response = orchestrator.invoke([SystemMessage(content="All the agents in the current plan have finished do synthesising and give the proper output")],user_query=user_query,state_summary=state_sumarry,document_summary=doc_summary)
     return {
         'next_agent' : 'finish',
         'messages' : AIMessage(content = "Orchestrator routing to finish"),
         'iteration' : state['iteration'] + 1,
         'current_agent' : 'Orchestrator',
+        'response' : final_response.content,
+        'citations' : final_response.citation,
     }
 def QNA_Agent(state:SharedState) -> SharedState:
     qna_agent = QnA_Agent(state['file_name'])
@@ -145,7 +150,36 @@ def routing(state:SharedState) -> SharedState:
     next_agent = state.get('next_agent','finish')
     print(next_agent)
     return {'next_agent':next_agent}
+
+def build_graph() -> SharedState:
+
+    graph = StateGraph()
+    graph.add_node("Orchestrator",orchestrate)
+    graph.add_node("QnA_Agent",QNA_Agent)
+    graph.add_node("clause_extraction_agent",clause_extraction_agent)
+    graph.add_node("synthesiser",synthesiser)
+    graph.add_node("risk_analyser",risk_analyser)
+    graph.add_node("report_generator",report_generator)
     
+    graph.set_entry_point('orchestrator')
+
+    graph.add_conditional_edges(
+        "orchestrator",
+        routing , 
+        {
+            "QnA_Agent" : "QnA_Agent",
+            "clause_extraction_agent" : "clause_extraction_agent",
+            "synthesiser" : "synthesiser",
+            "risk_analyser" : "risk_analyser",
+            "report_generator" : "report_generator",
+            "finish" : "finish"
+        }
+    )
+
+    graph.add_edge("finish",END)
+
+    return graph
+
 
 with PostgteGraphSaver.from_conn_string(DB_URI) as checkpointer:  
     pass
