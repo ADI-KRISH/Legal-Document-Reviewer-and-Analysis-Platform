@@ -1,4 +1,3 @@
-from system.supervisor_dynamic import route_from_orchestrator
 from system.report_generator_agent import ReportGeneratorAgent
 from system.clause_extraction_agent import Clause_Extraction_Agent
 from typing import TypedDict,Dict
@@ -13,7 +12,7 @@ from negotiation_agent import Negotiation_Agent
 from report_generator import Report_Generator
 from research_agent import Research_Agent
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
-from langgraph.graph import Staegraph,START,END
+from langgraph.graph import StateGraph,START,END
 from langchain.prompts import AIMessage
 DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable"
 
@@ -89,6 +88,17 @@ def orchestrate(state:SharedState) -> SharedState:
         'response' : final_response.content,
         'citations' : final_response.citation,
     }
+def Negotiation_Agent(state:SharedState) -> SharedState:
+    negotiation_agent = Negotiation_Agent()
+    response = negotiation_agent.negotiate(state['clauses_json'],state['risk_json'])
+    return {
+        'current_agent' : 'Negotiation_Agent',
+        'next_agent' : 'Orchestrator',
+        'iteration' : state['iteration'] + 1,
+        'execution' : {**state['execution'], 'Negotiation_Agent' : True},
+        'messages' : AIMessage(content = response.content),
+        'citations' : response.citation,
+    }
 def QNA_Agent(state:SharedState) -> SharedState:
     qna_agent = QnA_Agent(state['file_name'])
     answer = qna_agent.get_answer(state['user_query'])
@@ -105,22 +115,22 @@ def clause_extraction_agent(state:SharedState)->SharedState:
     clause_extraction_agent = Clause_Extraction_Agent()
     results = clause_extraction_agent.extract_clauses(state['file_name'])
     return {
-        'clause_json': results,
+        'clause_json': AIMessage(content=results.content),
         'current_agent' : 'clause_extraction_agent',
         'next_agent' : 'Orchestrator',
         'iteration' : state['iteration'] + 1,
         'execution' : {**state['execution'], 'clause_extraction_agent' : True},
     }
 
-def synthesiser(state:SharedState)->SharedState:
-    synthesizer = Synthesizer_Agent()
-    response = synthesizer.run(state['synthesizer_in'] , state['user_query'])
-    return {
-        'current_agent' : 'synthesiser',
-        'next_agent' : 'Orchestrator',
-        'iteration' : state['iteration'] + 1,
-        'execution' : {**state['execution'], 'synthesiser' : True},
-    }
+# def synthesiser(state:SharedState)->SharedState:
+#     synthesizer = Synthesizer_Agent()
+#     response = synthesizer.run(state['synthesizer_in'] , state['user_query'])
+#     return {
+#         'current_agent' : 'synthesiser',
+#         'next_agent' : 'Orchestrator',
+#         'iteration' : state['iteration'] + 1,
+#         'execution' : {**state['execution'], 'synthesiser' : True},
+#     }
 
 def risk_analyser(state:SharedState)->SharedState:
     risk_analyser = Risk_Analyser()
@@ -151,6 +161,17 @@ def routing(state:SharedState) -> SharedState:
     print(next_agent)
     return {'next_agent':next_agent}
 
+
+AGENT_NODE_MAP = {
+    'clause_extraction_agent' : clause_extraction_agent,
+    # 'synthesiser' : synthesiser,
+    'risk_analyser' : risk_analyser,
+    'report_generator' : report_generator,
+    'QnA_Agent' : QNA_Agent,
+    'negotiation_agent' : negotiation_agent,
+    'research_agent' : research_agent,
+}
+
 def build_graph() -> SharedState:
 
     graph = StateGraph()
@@ -172,17 +193,18 @@ def build_graph() -> SharedState:
             "synthesiser" : "synthesiser",
             "risk_analyser" : "risk_analyser",
             "report_generator" : "report_generator",
-            "finish" : "finish"
+            "finish" : END
         }
     )
-
+    for agent in AGENT_NODE_MAP:
+        graph.add_node(agent,"orchestrator")
     graph.add_edge("finish",END)
 
-    return graph
+    return graph.compile()
 
 
-with PostgteGraphSaver.from_conn_string(DB_URI) as checkpointer:  
-    pass
+# with PostgteGraphSaver.from_conn_string(DB_URI) as checkpointer:  
+#     pass
 
 
 
