@@ -4,9 +4,8 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.runnables import RunnableLambda
 from pydantic import BaseModel,Field
 import os
-from dotenv import load_dotenv
-load_dotenv()
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 
 class Synthesizer_Output(BaseModel):
     response : str = Field(...,description="Should return the sythesized response ")

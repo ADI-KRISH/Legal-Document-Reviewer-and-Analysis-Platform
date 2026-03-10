@@ -2,15 +2,16 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import SystemMessage
 import os
-from dotenv import load_dotenv
-from pydantic import BaseModel
+from dotenv import load_dotenv, find_dotenv
+from pydantic import BaseModel, Field
+from langchain_core.output_parsers import PydanticOutputParser
 
-load_dotenv()
+load_dotenv(find_dotenv())
 
 class Orchestrator_Output(BaseModel):
     reason : str = Field(description="Reason for choosing this plan")
     plan : list[str] = Field(description="List of agents to be executed")
-    document_in_use = Field(description="The current Document in use for which the plan is being created")
+    document_in_use : list[str] = Field(description="The current Document in use for which the plan is being created")
     intent : str = Field(description="The intent of the user")
     response  : str = Field(description="The response to the user after all the results are synthesised")
     citations : list[str] = Field(description="The citations for the response")

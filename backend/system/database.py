@@ -4,9 +4,9 @@ from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
 import enum
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
-load_dotenv()
+load_dotenv(find_dotenv())
 
 # Check for DATABASE_URL in environment or default to a local SQLite for now (change to Postgres later)
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./local_dev.db")

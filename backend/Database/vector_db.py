@@ -15,7 +15,8 @@ from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from dotenv import load_dotenv
 
-load_dotenv()
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())   # walks up directories until it finds a .env file
 
 _BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # → backend/
 CHROMA_PATH  = os.path.join(_BACKEND_DIR, "db", "chroma_storage")
@@ -23,6 +24,7 @@ COLLECTION_NAME = "Legal_Docs"
 
 chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
 legal_collection = chroma_client.get_or_create_collection(name=COLLECTION_NAME)
+os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY')
 
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 

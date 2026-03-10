@@ -4,9 +4,9 @@ from langchain_core.prompts import PromptTemplate
 from langchain_openai import OpenAIEmbeddings
 from langchain_core.messages import SystemMessage
 import os 
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from chromadb import PersistentClient
-load_dotenv()
+load_dotenv(find_dotenv())
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _CHROMA_PATH = os.path.join(_PROJECT_ROOT, "backend", "db", "chroma_storage")

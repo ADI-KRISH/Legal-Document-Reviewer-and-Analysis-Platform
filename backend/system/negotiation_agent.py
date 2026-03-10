@@ -6,9 +6,9 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.runnables import RunnableLambda
 import os 
-from dotenv import load_dotenv
-load_dotenv()
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
+
 
 Priority = Literal["High", "Medium", "Low"]
 RiskLevel = Literal["High", "Medium", "Low"]

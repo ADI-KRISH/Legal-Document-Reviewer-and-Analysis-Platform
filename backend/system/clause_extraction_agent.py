@@ -1,6 +1,8 @@
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from typing import List, Optional
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from Database.vector_db import get_doc_text
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
@@ -8,8 +10,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.runnables import RunnableLambda
 import chromadb
-load_dotenv()
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+load_dotenv(find_dotenv())
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 class ClauseSection(BaseModel):
     clause_id: str = Field(..., description="Unique ID like CLS-001")

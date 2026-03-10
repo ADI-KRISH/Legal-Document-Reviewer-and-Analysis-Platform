@@ -1,16 +1,16 @@
-from system.report_generator_agent import ReportGeneratorAgent
+# from system.report_generator_agent import ReportGeneratorAgent
 from system.clause_extraction_agent import Clause_Extraction_Agent
 from typing import TypedDict,Dict
 from pydantic import BaseModel
 from typing import Annotated
-from orchestrator import Orchestrator
-from risk_analyser import Risk_Analyser
-from negotiation_agent import Negotiation_Agent
-from summariser import Summariser
-from QnA_Agent import QnA_Agent
-from negotiation_agent import Negotiation_Agent
-from report_generator import Report_Generator
-from research_agent import Research_Agent
+from system.orchestrator import Orchestrator
+from system.risk_agent import Risk_Agent
+from system.negotiation_agent import Negotiation_Agent
+from system.summariser import Summariser
+from system.QnA_Agent import QnA_Agent
+from system.negotiation_agent import Negotiation_Agent
+from system.report_generator_agent import Report_Generator_Agent
+from system.research_agent import Research_Agent
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.graph import StateGraph,START,END
 from langchain.prompts import AIMessage
@@ -149,7 +149,7 @@ def risk_analyser(state:SharedState)->SharedState:
 
 
 def report_generator(state:State)->State:
-    report_generator_agent = ReportGeneratorAgent()
+    report_generator_agent = Report_Generator_Agent()
     report = report_generator_agent.generate_report(state['file_name'])
     return {
         'next_agent' : 'Orchestrator',

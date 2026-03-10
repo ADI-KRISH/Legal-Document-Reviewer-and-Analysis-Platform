@@ -6,17 +6,16 @@ from pydantic import BaseModel,Field
 from langchain_core.output_parsers import JsonOutputParser, PydanticOutputParser
 from langchain_core.runnables import RunnableLambda
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from langchain_openai  import ChatOpenAI
-load_dotenv()
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+load_dotenv(find_dotenv())
 class RiskAnalysis(BaseModel) :
     risk_score : float = Field(description="The risk score of the input clauses",gt=0,lt=1.0)
     missing_clause_detection : str = Field(description="The missing clauses from the inputed clasuses")
     conflicts : str = Field(description="The conflicts in the clauses")
     compliance_flag : bool = Field(description="The compliance flag for the clauses") 
 
-class RiskAgent:
+class Risk_Agent:
     def  __init__(self):
         self.model = ChatOpenAI(
             model="gpt-3.5-turbo",

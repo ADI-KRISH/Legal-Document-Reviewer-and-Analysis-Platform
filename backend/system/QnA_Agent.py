@@ -5,11 +5,11 @@ from langchain_core.prompts import PromptTemplate
 from  langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.runnables import RunnableLambda
 import os 
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from chromadb import PersistentClient
 
-load_dotenv()
-os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY')
+load_dotenv(find_dotenv())
+
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _CHROMA_PATH = os.path.join(_PROJECT_ROOT, "backend", "db", "chroma_storage")

@@ -5,15 +5,15 @@ from dotenv import load_dotenv
 import os
 import sys
 
-load_dotenv()
+load_dotenv(find_dotenv())
 
 # Portable path to backend/Database
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(_PROJECT_ROOT, "backend", "Database"))
-from vector_db import get_doc_text
+from Database.vector_db import get_doc_text
 
 
-class ReportGeneratorAgent:
+class Report_Generator_Agent:
     def __init__(self):
         self.llm = ChatOpenAI(temperature=0, model="gpt-4o-mini")
         self.prompt = PromptTemplate(

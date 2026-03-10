@@ -2,7 +2,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter,MarkdownHead
 from chromadb import PersistentClient
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_core.documents import Document
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 import os
 import hashlib
 import tempfile
@@ -12,10 +12,7 @@ import pymupdf4llm as pmp
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHROMA_PATH = os.path.join(_PROJECT_ROOT, "backend", "db", "chroma_storage")
 COLLECTION_NAME = "Legal_Docs"
-load_dotenv()
-
-
-
+load_dotenv(find_dotenv())
 class Document_Processor:
     def __init__(self):
         self.embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
