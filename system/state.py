@@ -14,6 +14,10 @@ from research_agent import Research_Agent
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.graph import StateGraph,START,END
 from langchain.prompts import AIMessage
+
+from langgraph.graph.message import add_messages
+import json 
+
 DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable"
 
 class SharedState(TypedDict):
@@ -178,7 +182,6 @@ def build_graph() -> SharedState:
     graph.add_node("Orchestrator",orchestrate)
     graph.add_node("QnA_Agent",QNA_Agent)
     graph.add_node("clause_extraction_agent",clause_extraction_agent)
-    graph.add_node("synthesiser",synthesiser)
     graph.add_node("risk_analyser",risk_analyser)
     graph.add_node("report_generator",report_generator)
     
@@ -197,7 +200,7 @@ def build_graph() -> SharedState:
         }
     )
     for agent in AGENT_NODE_MAP:
-        graph.add_node(agent,"orchestrator")
+        graph.add_edge(agent,"Orchestrator")
     graph.add_edge("finish",END)
 
     return graph.compile()

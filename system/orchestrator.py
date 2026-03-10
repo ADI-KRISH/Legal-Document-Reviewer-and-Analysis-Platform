@@ -44,6 +44,8 @@ Your task:
 - After the Execution of all the agents and you will be given the result as in the state summary and a system message to give the synthesised output
  you will have to by yourself synthesise the output and give it back to the user 
 - The response should be clear cut and concise and should be in a format that can be easily understood by the user 
+- You may not be always given a document summary nor a document . Some users may only want to ask a question about some legal problems . You can call the research agent to answer their questions .\
+- 
 
 ------------------------------------------------------------
 AVAILABLE AGENTS (TOOLS)
