@@ -5,21 +5,21 @@ from pydantic import BaseModel
 from typing import Annotated
 from system.orchestrator import Orchestrator
 from system.risk_agent import Risk_Agent
-from system.negotiation_agent import Negotiation_Agent
 from system.summariser import Summariser
 from system.QnA_Agent import QnA_Agent
 from system.negotiation_agent import Negotiation_Agent
 from system.report_generator_agent import Report_Generator_Agent
 from system.research_agent import Research_Agent
-from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+# from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.graph import StateGraph,START,END
-from langchain.prompts import AIMessage
+from langchain_core.messages import AIMessage,SystemMessage
+from langgraph.checkpoint.memory import InMemorySaver
 
 from langgraph.graph.message import add_messages
 import json 
 
-DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable"
-
+# DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable"
+checkpointer = InMemorySaver()
 class SharedState(TypedDict):
     document_uploaded : bool
     file_name : Annotated[list[str],add_messages]
@@ -53,7 +53,6 @@ class SharedState(TypedDict):
     }
 
 
-graph = StateGraph()
 
 def orchestrate(state:SharedState) -> SharedState:
     orchestrator = Orchestrator()
@@ -92,23 +91,23 @@ def orchestrate(state:SharedState) -> SharedState:
         'response' : final_response.content,
         'citations' : final_response.citation,
     }
-def Negotiation_Agent(state:SharedState) -> SharedState:
-    negotiation_agent = Negotiation_Agent()
-    response = negotiation_agent.negotiate(state['clauses_json'],state['risk_json'])
+def negotiation_agent(state:SharedState) -> SharedState:
+    negotiator = Negotiation_Agent()
+    response = negotiator.negotiate(state['clauses_json'],state['risk_json'])
     return {
-        'current_agent' : 'Negotiation_Agent',
+        'current_agent' : 'negotiation_agent',
         'next_agent' : 'Orchestrator',
         'iteration' : state['iteration'] + 1,
-        'execution' : {**state['execution'], 'Negotiation_Agent' : True},
+        'execution' : {**state['execution'], 'negotiation_agent' : True},
         'messages' : AIMessage(content = response.content),
         'citations' : response.citation,
     }
-def QNA_Agent(state:SharedState) -> SharedState:
-    qna_agent = QnA_Agent(state['file_name'])
-    answer = qna_agent.get_answer(state['user_query'])
+def qna_agent(state:SharedState) -> SharedState:
+    qna = QnA_Agent(state['file_name'])
+    answer = qna.get_answer(state['user_query'])
     return {'messages' : AIMessage(content = answer.answer),
             'citations' : answer.citation,
-            'current_agent' : 'QnA_Agent',
+            'current_agent' : 'qna_agent',
             'next_agent' : 'Orchestrator',
             'iteration' : state['iteration'] + 1,
             'execution' : {**state['execution'], 'QnA_Agent' : True},
@@ -137,7 +136,7 @@ def clause_extraction_agent(state:SharedState)->SharedState:
 #     }
 
 def risk_analyser(state:SharedState)->SharedState:
-    risk_analyser = Risk_Analyser()
+    risk_analyser = Risk_Agent()
     response = risk_analyser.analyze_risk(state['clause_json'])
     return {
         'risk_json' : response,
@@ -148,7 +147,7 @@ def risk_analyser(state:SharedState)->SharedState:
     }
 
 
-def report_generator(state:State)->State:
+def report_generator(state:SharedState)->State:
     report_generator_agent = Report_Generator_Agent()
     report = report_generator_agent.generate_report(state['file_name'])
     return {
@@ -158,12 +157,22 @@ def report_generator(state:State)->State:
         'iteration' : state['iteration'] + 1,
         'execution' : {**state['execution'], 'report_generator' : True},
             }
+def research_agent(state:SharedState)->SharedState:
+    research_agent = Research_Agent()
+    response = research_agent.run(state['user_query'],state['clauses_json'])
+    return {
+        'research_json' : response,
+        'current_agent' : 'research_agent',
+        'next_agent' : 'Orchestrator',
+        'iteration' : state['iteration'] + 1,
+        'execution' : {**state['execution'], 'research_agent' : True},
+    }
     
 
-def routing(state:SharedState) -> SharedState:
+def routing(state:SharedState):
     next_agent = state.get('next_agent','finish')
     print(next_agent)
-    return {'next_agent':next_agent}
+    return next_agent
 
 
 AGENT_NODE_MAP = {
@@ -171,16 +180,15 @@ AGENT_NODE_MAP = {
     # 'synthesiser' : synthesiser,
     'risk_analyser' : risk_analyser,
     'report_generator' : report_generator,
-    'QnA_Agent' : QNA_Agent,
+    'QnA_Agent' : qna_agent,
     'negotiation_agent' : negotiation_agent,
     'research_agent' : research_agent,
 }
-
 def build_graph() -> SharedState:
 
-    graph = StateGraph()
+    graph = StateGraph(SharedState)
     graph.add_node("Orchestrator",orchestrate)
-    graph.add_node("QnA_Agent",QNA_Agent)
+    graph.add_node("QnA_Agent",qna_agent)
     graph.add_node("clause_extraction_agent",clause_extraction_agent)
     graph.add_node("risk_analyser",risk_analyser)
     graph.add_node("report_generator",report_generator)
@@ -196,12 +204,11 @@ def build_graph() -> SharedState:
             "synthesiser" : "synthesiser",
             "risk_analyser" : "risk_analyser",
             "report_generator" : "report_generator",
-            "finish" : END
         }
     )
+    graph.add_edge('orchestrator',END)
     for agent in AGENT_NODE_MAP:
         graph.add_edge(agent,"Orchestrator")
-    graph.add_edge("finish",END)
 
     return graph.compile()
 

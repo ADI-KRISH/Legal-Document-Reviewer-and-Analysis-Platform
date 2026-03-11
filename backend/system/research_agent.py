@@ -61,7 +61,7 @@ def web_search(query: str, max_results: int = 5) -> List[dict]:
     return results
 
 
-class ResearchAgent:
+class Research_Agent:
     def __init__(self):
         self.llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
 
