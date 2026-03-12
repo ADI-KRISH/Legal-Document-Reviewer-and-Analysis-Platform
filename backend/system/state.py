@@ -1,6 +1,6 @@
 # from system.report_generator_agent import ReportGeneratorAgent
 from system.clause_extraction_agent import Clause_Extraction_Agent
-from typing import TypedDict,Dict
+from typing import TypedDict, Dict, Any
 from pydantic import BaseModel
 from typing import Annotated
 from system.orchestrator import Orchestrator
@@ -23,17 +23,17 @@ checkpointer = InMemorySaver()
 class SharedState(TypedDict):
     document_uploaded : bool
     file_name : Annotated[list[str],add_messages]
-    results  : Annotated[list[Dict[str]],add_messages]
+    results  : Annotated[list[Dict[str, Any]], add_messages]
     messages : Annotated[list[str],add_messages]
-    negotiation_json : Dict[str,any]
-    risk_json : Dict[str,any]
-    clauses_json : Dict[str,any]
-    report : Annotated[str,add_messages]
+    negotiation_json : Dict[str, Any]
+    risk_json : Dict[str, Any]
+    clauses_json : Dict[str, Any]
+    report : Annotated[str, add_messages]
     iteration : int
-    plan : Annotated[list[str],add_messages]
-    user_query : Annotated[list[str],add_messages]
-    response : Annotated[list[str],add_messages]
-    research_json : Dict[str,any]
+    plan : Annotated[list[str], add_messages]
+    user_query : Annotated[list[str], add_messages]
+    response : Annotated[list[str], add_messages]
+    research_json : Dict[str, Any]
     current_agent : str
     next_agent : str
     research_output : Annotated[list[str],add_messages]
@@ -42,7 +42,7 @@ class SharedState(TypedDict):
     citations : list[str] = None
     step  : int = 0
     reason  : Annotated[str,add_messages]
-    execution : Dict[str:bool] = {
+    execution : Dict[str, bool] = {
         "risk_analyser" : False,
         "negotiation_agent" : False,
         "summariser" : False,
