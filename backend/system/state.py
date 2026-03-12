@@ -209,8 +209,8 @@ def build_graph() -> SharedState:
     graph.add_edge('orchestrator',END)
     for agent in AGENT_NODE_MAP:
         graph.add_edge(agent,"Orchestrator")
-
-    return graph.compile()
+    workflow = graph.compile(checkpointer=checkpointer)
+    return workflow
 
 
 # with PostgteGraphSaver.from_conn_string(DB_URI) as checkpointer:  
