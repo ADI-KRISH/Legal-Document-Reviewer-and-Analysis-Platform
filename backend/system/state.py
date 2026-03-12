@@ -147,7 +147,7 @@ def risk_analyser(state:SharedState)->SharedState:
     }
 
 
-def report_generator(state:SharedState)->State:
+def report_generator(state:SharedState)->SharedState:
     report_generator_agent = Report_Generator_Agent()
     report = report_generator_agent.generate_report(state['file_name'])
     return {
@@ -192,21 +192,22 @@ def build_graph() -> SharedState:
     graph.add_node("clause_extraction_agent",clause_extraction_agent)
     graph.add_node("risk_analyser",risk_analyser)
     graph.add_node("report_generator",report_generator)
+    graph.add_node("negotiation_agent",negotiation_agent)
+    graph.add_node("research_agent",research_agent)
     
-    graph.set_entry_point('orchestrator')
+    graph.set_entry_point('Orchestrator')
 
     graph.add_conditional_edges(
-        "orchestrator",
+        "Orchestrator",
         routing , 
         {
             "QnA_Agent" : "QnA_Agent",
             "clause_extraction_agent" : "clause_extraction_agent",
-            "synthesiser" : "synthesiser",
             "risk_analyser" : "risk_analyser",
             "report_generator" : "report_generator",
         }
     )
-    graph.add_edge('orchestrator',END)
+    graph.add_edge('Orchestrator',END)
     for agent in AGENT_NODE_MAP:
         graph.add_edge(agent,"Orchestrator")
     workflow = graph.compile(checkpointer=checkpointer)
