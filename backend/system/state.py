@@ -73,8 +73,15 @@ def orchestrate(state:SharedState) -> SharedState:
             'next_agent'    : plan[0] if plan else 'finish',
             'plan'          : plan,
         }
-
-    for agent in state['plan']:
+    agent_plan = state.get('plan', [])
+    if isinstance(agent_plan,list) :
+        agent_plan = agent_plan[-1]
+        if isinstance(agent_plan, list):
+            last = agent_plan[-1]
+            agent_plan = last.content if hasattr(last,'content') else str(last)
+        else:
+            agent_plan = str(agent_plan)
+    for agent in agent_plan:
         if state['execution'][agent] == False:
             return {
                 'next_agent' : agent,
@@ -104,8 +111,15 @@ def negotiation_agent(state:SharedState) -> SharedState:
         'citations' : response.citation,
     }
 def qna_agent(state:SharedState) -> SharedState:
-    qna = QnA_Agent(state['file_name'])
-    answer = qna.get_answer(state['user_query'])
+    qna = QnA_Agent(str(state['file_name']))
+    query = state['user_query']
+    if isinstance(query, list):
+        last = query[-1]
+        query_text = last.content if hasattr(last,'content') else str(last)
+    else:
+        query_text = str(query)
+
+    answer = qna.get_answer(query_text)
     return {'messages' : AIMessage(content = answer.answer),
             'citations' : answer.citation,
             'current_agent' : 'qna_agent',
@@ -117,9 +131,9 @@ def qna_agent(state:SharedState) -> SharedState:
 
 def clause_extraction_agent(state:SharedState)->SharedState:
     clause_extraction_agent = Clause_Extraction_Agent()
-    results = clause_extraction_agent.extract_clauses(state['file_name'])
+    results = clause_extraction_agent.extract_clauses(str(state['file_name']))
     return {
-        'clause_json': AIMessage(content=results.content),
+        'clause_json': AIMessage(content=results),
         'current_agent' : 'clause_extraction_agent',
         'next_agent' : 'Orchestrator',
         'iteration' : state['iteration'] + 1,

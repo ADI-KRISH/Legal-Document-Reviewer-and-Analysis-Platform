@@ -52,7 +52,7 @@ Key terms:
 - No exclusion clause for gross negligence
 """
 
-SAMPLE_FILE_NAME = "sample_nda.txt"
+SAMPLE_FILE_NAME = "sample.pdf"
 
 
 # ── Test scenarios ─────────────────────────────────────────────────────────────
