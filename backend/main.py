@@ -15,15 +15,15 @@ import chromadb
 # from langchain_text_splitters import RecursiveCharacterTextSplitter
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.path.join(BACKEND_DIR, "data.txt")
-
+sys.path.append(r"C:/Users/GS Adithya Krishna/Desktop/study/agentic ai/project/backend/system")
 MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "http://localhost:9000")
 MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
 MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
 MINIO_BUCKET = os.getenv("MINIO_BUCKET_NAME", "legal-uploads")
 
 try :
-    sys.path.append(r"C:/Users/GS Adithya Krishna/Desktop/study/agentic ai/project/system")
-    from doc_manager import Document_Processor  
+    sys.path.append(r"C:/Users/GS Adithya Krishna/Desktop/study/agentic ai/project/backend/system")
+    from system.doc_manager import Document_Processor  
 except Exception as e :
     print("could not import doc_manager")
 
@@ -59,9 +59,9 @@ load_dotenv(os.path.join(system_path, ".env"))
 #     print(f"Failed to initialize vector storage: {e}")
 #     vector_storage = None
 try:
-    from orchestrator import Orchestrator
-    from negotiation_agent import Negotiation_Agent
-    from clause_extraction_agent import Clause_Extraction_Agent
+    from system.orchestrator import Orchestrator
+    from system.negotiation_agent import Negotiation_Agent
+    from system.clause_extraction_agent import Clause_Extraction_Agent
     # from document_parser import DocumentProcessor
 except ImportError as e:
     print(f"Failed to import local modules: {e}")
@@ -114,14 +114,14 @@ _summariser = None
 _clause_agent = None
 _report_generator = None
 
-from summariser import Summariser
+from system.summariser import Summariser
 def get_summariser():
     global _summariser
     if _summariser is None:
         _summariser = Summariser()
     return _summariser
 
-from report_generator_agent import ReportGeneratorAgent
+from system.report_generator_agent import Report_Generator_Agent
 def get_report_agent():
     global _report_generator
     if _report_generator is None:

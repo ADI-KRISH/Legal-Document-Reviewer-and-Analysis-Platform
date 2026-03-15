@@ -61,18 +61,18 @@ def orchestrate(state:SharedState) -> SharedState:
     user_query = state.get("user_query","")
     
     if state.get('iteration') == 0 or not state.get('plan'):
-        result = orchestrator.run(user_query=user_query,state_summary=state_sumarry,document_summary=doc_summary)
-        state["plan"] = result.content["plan"].strip().lower()
-        state["reason"] = result.content["reason"].strip().lower()    
-        state['document_name'] = result.content['document_in_use'].strip().lower()
-        plan = state["plan"]
-        return{
-            'messages' : AIMessage(content = f"Orchestrator routing to {plan[0]} "),
-            'reason' : AIMessage(content = f"Orchestrator routing to {plan[0]} because {state['reason']}"),
-            'iteration' : state['iteration'] + 1,
+        raw = orchestrator.activate_orchestrator(user_query, state_sumarry, doc_summary)
+        result = json.loads(raw)          # activate_orchestrator() returns a JSON string
+        plan   = result.get("plan", [])
+        reason = result.get("reason", "")
+        return {
+            'messages'      : AIMessage(content=f"Orchestrator routing to {plan[0] if plan else 'finish'}"),
+            'reason'        : AIMessage(content=reason),
+            'iteration'     : state['iteration'] + 1,
             'current_agent' : 'Orchestrator',
-            'next_agent' : plan[0],
-            } 
+            'next_agent'    : plan[0] if plan else 'finish',
+            'plan'          : plan,
+        }
 
     for agent in state['plan']:
         if state['execution'][agent] == False:
@@ -82,14 +82,15 @@ def orchestrate(state:SharedState) -> SharedState:
                 'iteration' : state['iteration'] + 1,
                 'current_agent' : 'Orchestrator',
             }
-    final_response = orchestrator.invoke([SystemMessage(content="All the agents in the current plan have finished do synthesising and give the proper output")],user_query=user_query,state_summary=state_sumarry,document_summary=doc_summary)
+    raw_final   = orchestrator.activate_orchestrator(user_query, state_sumarry, doc_summary)
+    final       = json.loads(raw_final)   # also a JSON string
     return {
-        'next_agent' : 'finish',
-        'messages' : AIMessage(content = "Orchestrator routing to finish"),
-        'iteration' : state['iteration'] + 1,
+        'next_agent'    : 'finish',
+        'messages'      : AIMessage(content="Orchestrator routing to finish"),
+        'iteration'     : state['iteration'] + 1,
         'current_agent' : 'Orchestrator',
-        'response' : final_response.content,
-        'citations' : final_response.citation,
+        'response'      : final.get('response', ''),
+        'citations'     : final.get('citations', []),
     }
 def negotiation_agent(state:SharedState) -> SharedState:
     negotiator = Negotiation_Agent()
