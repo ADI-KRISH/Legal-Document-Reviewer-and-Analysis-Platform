@@ -53,7 +53,7 @@ AVAILABLE AGENTS (TOOLS)
 ------------------------------------------------------------
 
 
-1) QA / RAG Legal Question Answering Agent
+1) QnA_Agent
 Purpose:
 - Answers factual questions about the document using vector database retrieval
 - Should return grounded answer (no hallucinations)

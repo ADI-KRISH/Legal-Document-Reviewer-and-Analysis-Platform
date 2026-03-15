@@ -203,9 +203,11 @@ def build_graph() -> SharedState:
         routing , 
         {
             "QnA_Agent" : "QnA_Agent",
-            "clause_extraction_agent" : "clause_extraction_agent",
-            "risk_analyser" : "risk_analyser",
-            "report_generator" : "report_generator",
+            "Clause Extraction Agent" : "clause_extraction_agent",
+            "Risk and Compliance Agent" : "risk_analyser",
+            "Report Generator Agent" : "report_generator",
+            "Negotiation Agent" : "negotiation_agent",
+            "Research Agent" : "research_agent",
         }
     )
     graph.add_edge('Orchestrator',END)
