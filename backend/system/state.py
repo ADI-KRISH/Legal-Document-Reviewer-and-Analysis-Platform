@@ -73,33 +73,30 @@ def orchestrate(state:SharedState) -> SharedState:
             'next_agent'    : plan[0] if plan else 'finish',
             'plan'          : plan,
         }
+    # plan is accumulated via add_messages → it's a flat list of agent-name strings
     agent_plan = state.get('plan', [])
-    print("this is the plan", agent_plan)
-    if isinstance(agent_plan,list) :
-        agent_plan = agent_plan[-1]
-        if isinstance(agent_plan, list):
-            last = agent_plan[-1]
-            agent_plan = last.content if hasattr(last,'content') else str(last)
+
+    # Normalise each item: could be a plain string or an AIMessage
+    plan_list = []
+    for item in agent_plan:
+        if hasattr(item, 'content'):
+            plan_list.append(item.content)
         else:
-            agent_plan = str(agent_plan)
-    print("this is the plan", agent_plan)   
-    for agent in agent_plan:
-        if state['execution'][agent] == False:
+            plan_list.append(str(item))
+
+    for agent in plan_list:
+        if not state['execution'].get(agent, False):
             return {
-                'next_agent' : agent,
-                'messages' : AIMessage(content = f"Orchestrator routing to {agent}"),
-                'iteration' : state['iteration'] + 1,
+                'next_agent'    : agent,
+                'messages'      : AIMessage(content=f"Orchestrator routing to {agent}"),
+                'iteration'     : state['iteration'] + 1,
                 'current_agent' : 'Orchestrator',
             }
-    raw_final   = orchestrator.activate_orchestrator(user_query, state_sumarry, doc_summary)
-    final       = json.loads(raw_final)   # also a JSON string
     return {
         'next_agent'    : 'finish',
         'messages'      : AIMessage(content="Orchestrator routing to finish"),
         'iteration'     : state['iteration'] + 1,
         'current_agent' : 'Orchestrator',
-        'response'      : final.get('response', ''),
-        'citations'     : final.get('citations', []),
     }
 def negotiation_agent(state:SharedState) -> SharedState:
     negotiator = Negotiation_Agent()
@@ -216,17 +213,17 @@ def build_graph() -> SharedState:
 
     graph.add_conditional_edges(
         "Orchestrator",
-        routing , 
+        routing,
         {
-            "QnA_Agent" : "QnA_Agent",
-            "Clause Extraction Agent" : "clause_extraction_agent",
-            "Risk and Compliance Agent" : "risk_analyser",
-            "Report Generator Agent" : "report_generator",
-            "Negotiation Agent" : "negotiation_agent",
-            "Research Agent" : "research_agent",
+            "QnA_Agent"                 : "QnA_Agent",
+            "clause_extraction_agent"   : "clause_extraction_agent",
+            "risk_analyser"             : "risk_analyser",
+            "report_generator"          : "report_generator",
+            "negotiation_agent"         : "negotiation_agent",
+            "research_agent"            : "research_agent",
+            "finish"                    : END,
         }
     )
-    graph.add_edge('Orchestrator',END)
     for agent in AGENT_NODE_MAP:
         graph.add_edge(agent,"Orchestrator")
     workflow = graph.compile(checkpointer=checkpointer)
