@@ -132,6 +132,7 @@ def qna_agent(state:SharedState) -> SharedState:
 def clause_extraction_agent(state:SharedState)->SharedState:
     clause_extraction_agent = Clause_Extraction_Agent()
     results = clause_extraction_agent.extract_clauses(str(state['file_name']))
+    print(results)
     return {
         'clause_json': AIMessage(content=results),
         'current_agent' : 'clause_extraction_agent',
